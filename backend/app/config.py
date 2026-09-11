@@ -9,8 +9,8 @@ from langchain_nomic import NomicEmbeddings
 # from langchain_ollama import ChatOllama
 # Load environment variables
 load_dotenv()
-import logfire
-logfire.configure()
+# import logfire
+# logfire.configure()
 
 
 class Settings:
