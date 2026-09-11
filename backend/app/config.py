@@ -6,7 +6,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from google.genai.errors import APIError,ServerError
 # from google.genai.
 from langchain_nomic import NomicEmbeddings
-from langchain_ollama import ChatOllama
+# from langchain_ollama import ChatOllama
 # Load environment variables
 load_dotenv()
 import logfire
@@ -133,17 +133,17 @@ class LLMs:
         exceptions_to_handle=(APIError,ServerError)
 
     )
-    phi_llm=ChatOllama(
-        model="phi4-mini:3.8b",
-        temperature=0.4
-    )
+    # phi_llm=ChatOllama(
+    #     model="phi4-mini:3.8b",
+    #     temperature=0.4
+    # )
     
 
 
-    llama=ChatOllama(
-        model="llama3.2:1b",
-        temperature=0.4
-    )
+    # llama=ChatOllama(
+    #     model="llama3.2:1b",
+    #     temperature=0.4
+    # )
 
     embeddings = NomicEmbeddings(
         nomic_api_key=settings.NOMIC_API_KEY,

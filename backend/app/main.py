@@ -10,7 +10,7 @@ from langchain.messages import SystemMessage,HumanMessage
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter,Language
 from langchain_community.vectorstores import FAISS
-from langchain_ollama import OllamaEmbeddings
+# from langchain_ollama import OllamaEmbeddings
 from fastapi.responses import JSONResponse
 from fastapi import Query,status,HTTPException
 from fastapi.requests import Request
