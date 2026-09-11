@@ -20,16 +20,17 @@ langchain_nomic
 # --- Vector Store & Embeddings (For RAG/Memory) ---
 # langchain-chroma>=0.1.0
 # faiss-cpu>=1.8.0
-pinecone
-langchain_pinecone
+# pinecone
+langchain-pinecone>=0.2.13
 
 # --- Cloud and deployment ---
   imagekitio
 # --- Database & Persistence ---
  asyncpg>=0.29.0       # For PostgreSQL state persistence in LangGraph
  psycopg-pool>=3.2.0
- langgraph-checkpoint-postgres
-
+ langgraph-checkpoint-postgres>=2.0.0
+ psycopg-binary>=3.2.0
+ pypdf>=5.0.0
 # --- Utilities & Performance ---
 python-dotenv>=1.0.1
 sse-starlette>=2.0.0    # Required for streaming responses (Server-Sent Events) to React
