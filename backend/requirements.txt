@@ -29,4 +29,4 @@ pinecone
 # --- Utilities & Performance ---
 python-dotenv>=1.0.1
 sse-starlette>=2.0.0    # Required for streaming responses (Server-Sent Events) to React
-httpx>=0.27.0d
+httpx>=0.27.0
