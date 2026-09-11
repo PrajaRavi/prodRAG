@@ -21,6 +21,7 @@ langchain_nomic
 # langchain-chroma>=0.1.0
 # faiss-cpu>=1.8.0
 pinecone
+langchain_pinecone
 
 # --- Cloud and deployment ---
   imagekitio
