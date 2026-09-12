@@ -134,6 +134,10 @@ def sse_event(event_type:str,data:str):
         f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
     )
 
+@app.get("/")
+def hello():
+    return {"All is welll bhai!!!!!"}
+
 @app.post("/chat")
 async def chat(body:ChatRequest,request:Request):
     try:
@@ -155,26 +159,31 @@ async def chat(body:ChatRequest,request:Request):
                 version="v2"
             ):
                 try:
-                    print(event['event'])
+                    # print(event['event'])
+                    # print(event)
+                    # print("="*100)
+
                     if event["event"] == "on_tool_start":
 
                         yield sse_event(
                             "on_tool_start",
                             event["name"]
                         )
-
-                    elif event["event"] == "on_tool_end":
-
+                    elif event["event"] == "on_parser_end":
+                        # here finally the decesion node makes the final decesion
+                        print("----------------------------------------------")
+                        print(event['data']['output'].msg)
                         yield sse_event(
-                            "on_tool_end",
-                            event["name"]
+                            "on_parser_end",
+                            event['data']['output'].msg
                         )
 
                     elif (
                         event["event"] == "on_chat_model_stream"
                         and event["data"]["chunk"].content
                     ):
-
+                        print(event["data"])
+                        print("="*100)
                         yield sse_event(
                         "message",
                         event["data"]["chunk"].content

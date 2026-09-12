@@ -20,10 +20,9 @@ class RAGDecision(BaseModel):
         )
     )
 
-    reason: str = Field(
+    msg: str = Field(
         description=(
-            "Short explanation for why the query does or does "
-            "not require RAG."
+            "simple polite refusal statement"
         )
     )
 
@@ -163,6 +162,8 @@ of leave are allowed?"
 IMPORTANT
 ==================================================
 
+in msg field refuse the user request politely 
+
 Do not assume that a query requires RAG merely because it
 mentions a topic that could exist in a document.
 
@@ -224,11 +225,7 @@ Return only the structured RAGDecision object.
     # --------------------------------------------------------
     # Return decision to LangGraph state
     # --------------------------------------------------------
-    print({
-        "is_rag_query": decision.is_query_relevant,
-        "final_response":"I am a Document Analyzer don't ask me these stupid questions?"
-      
-    })
+    
 
     if(str(decision.is_query_relevant).lower()=="false"):
         return {
