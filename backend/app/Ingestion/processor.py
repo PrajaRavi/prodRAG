@@ -46,12 +46,12 @@ def _load_fallback(file_path: str) -> List[Document]:
 
 # Extension-to-Loader Routing Registry
 LOADER_REGISTRY: Dict[str, Callable[[str], List[Document]]] = {
-    ".txt": _load_txt,
-    ".log": _load_txt,
-    ".pdf": _load_pdf,
-    ".csv": _load_csv,
-    ".json": _load_json,
-    ".md": _load_markdown,
+    "txt": _load_txt,
+    "log": _load_txt,
+    "pdf": _load_pdf,
+    "csv": _load_csv,
+    "json": _load_json,
+    "md": _load_markdown,
 }
 
 
@@ -60,24 +60,25 @@ async def complete_Ingestion(file_path: str, max_size_mb: int = 10,user_id="ravi
     Global dispatcher function to inspect a file's extension and execute
     the appropriate loader while enforcing size and security safety checks.
     """
-    # 1. Path & Existence Checks
-    if not os.path.exists(file_path):
-        print(f"[Error] File does not exist: {file_path}")
-        return []
+    # 1. Path & Existence Checks #! the path is imagekit public url
+    # if not os.path.exists(file_path):
+    #     print(f"[Error] File does not exist: {file_path}")
+    #     return []
 
-    if not os.path.isfile(file_path):
-        print(f"[Error] Provided path is a directory, not a file: {file_path}")
-        return []
+    # if not os.path.isfile(file_path):
+    #     print(f"[Error] Provided path is a directory, not a file: {file_path}")
+    #     return []
 
     # 2. File Size Validation (OOM Protection)
-    max_bytes = max_size_mb * 1024 * 1024
-    file_size = os.path.getsize(file_path)
-    if file_size > max_bytes:
-        print(f"[Error] File size ({file_size} bytes) exceeds limit ({max_size_mb} MB): {file_path}")
-        return []
+    # max_bytes = max_size_mb * 1024 * 1024
+    # file_size = os.path.getsize(file_path)
+    # if file_size > max_bytes:
+    #     print(f"[Error] File size ({file_size} bytes) exceeds limit ({max_size_mb} MB): {file_path}")
+    #     return []
 
     # 3. Extract File Extension
-    _, ext = os.path.splitext(file_path)
+    ext=str(file_path).split(".")[-1]
+    print(ext)
     ext = ext.lower()
 
     # 4. Resolve Loader Strategy

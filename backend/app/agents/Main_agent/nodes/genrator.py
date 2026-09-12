@@ -15,11 +15,11 @@ async def genrator(state: AgentState) -> AgentState:
     context = state.get("context", "")
     query = state["query"]
 
-    if not context:
-        print("I could not find relevant information in the provided documents. inside genrator node")
-        return {
-            "final_response": "I could not find relevant information in the provided documents."
-        }
+    # if not context:
+    #     print("I could not find relevant information in the provided documents. inside genrator node")
+    #     return {
+    #         "final_response": "I could not find relevant information in the provided documents."
+    #     }
 
     prompt = RAG_SYSTEM_PROMPT.format(context=context)
 

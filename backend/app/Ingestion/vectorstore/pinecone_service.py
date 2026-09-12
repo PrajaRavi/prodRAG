@@ -498,3 +498,37 @@ async def similarity_search_by_filter_metadata(
         raise RuntimeError(
             "Failed to perform filtered similarity search."
         ) from exc
+
+
+from pinecone.exceptions import PineconeException
+
+
+def delete_conversation_documents(
+    user_id: str,
+    conversation_id: str,
+) -> None:
+    if not user_id or not user_id.strip():
+        raise ValueError("user_id cannot be empty.")
+
+    if not conversation_id or not conversation_id.strip():
+        raise ValueError("conversation_id cannot be empty.")
+
+    try:
+        pinecone_index.delete(
+            filter={
+                "user_id": {"$eq": user_id.strip()},
+                "conversation_id": {"$eq": conversation_id.strip()},
+            },
+            namespace=PINECONE_NAMESPACE,
+        )
+
+    except PineconeException as exc:
+        raise RuntimeError(
+            "Failed to delete conversation documents from Pinecone."
+        ) from exc
+
+    except Exception as exc:
+        print(exc)
+        raise RuntimeError(
+            "Unexpected error while deleting conversation documents."
+        ) from exc

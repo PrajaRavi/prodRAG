@@ -8,19 +8,19 @@ from langchain_core.documents import Document
 
 def text_loader(file_path: str) -> list[Document]:
     # 1. Validate File Existence & Type
-    if not os.path.exists(file_path):
-        print(f"Error: File not found -> {file_path}")
-        return []
+    # if not os.path.exists(file_path):
+    #     print(f"Error: File not found -> {file_path}")
+    #     return []
     
-    if not os.path.isfile(file_path):
-        print(f"Error: Path is a directory, not a file -> {file_path}")
-        return []
+    # if not os.path.isfile(file_path):
+    #     print(f"Error: Path is a directory, not a file -> {file_path}")
+    #     return []
 
-    # 2. Prevent OOM by Checking File Size (e.g., Limit to 50MB)
-    MAX_SIZE_BYTES = 10 * 1024 * 1024
-    if os.path.getsize(file_path) > MAX_SIZE_BYTES:
-        print(f"Error: File exceeds size limit ({os.path.getsize(file_path)} bytes) -> {file_path}")
-        return []
+    # # 2. Prevent OOM by Checking File Size (e.g., Limit to 50MB)
+    # MAX_SIZE_BYTES = 10 * 1024 * 1024
+    # if os.path.getsize(file_path) > MAX_SIZE_BYTES:
+    #     print(f"Error: File exceeds size limit ({os.path.getsize(file_path)} bytes) -> {file_path}")
+    #     return []
 
     # 3. Handle Text Loading with Auto Encoding Detection
     try:

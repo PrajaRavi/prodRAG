@@ -236,6 +236,6 @@ Return only the structured RAGDecision object.
 
     return {
         "is_rag_query": decision.is_query_relevant,
-        "rag_reason": decision.reason,
+        
       
     }

@@ -74,23 +74,23 @@ def safe_server_pdf_loader(file_path: str, max_size_mb: int = 10, password: str 
     Handles missing files, size constraints, encryption, and empty/scanned pages.
     """
     # 1. Validate File Path & Type
-    if not os.path.exists(file_path):
-        print(f"Error: File not found -> {file_path}")
-        return []
+    # if not os.path.exists(file_path):
+    #     print(f"Error: File not found -> {file_path}")
+    #     return []
 
-    if not os.path.isfile(file_path):
-        print(f"Error: Path is a directory, not a file -> {file_path}")
-        return []
+    # if not os.path.isfile(file_path):
+    #     print(f"Error: Path is a directory, not a file -> {file_path}")
+    #     return []
 
     if not file_path.lower().endswith(".pdf"):
         print(f"Error: Target file is not a PDF -> {file_path}")
         return []
 
     # 2. Check File Size Limit to Prevent Memory Exhaustion
-    max_size_bytes = max_size_mb * 1024 * 1024
-    if os.path.getsize(file_path) > max_size_bytes:
-        print(f"Error: PDF size ({os.path.getsize(file_path)} bytes) exceeds limit of {max_size_mb} MB -> {file_path}")
-        return []
+    # max_size_bytes = max_size_mb * 1024 * 1024
+    # if os.path.getsize(file_path) > max_size_bytes:
+    #     print(f"Error: PDF size ({os.path.getsize(file_path)} bytes) exceeds limit of {max_size_mb} MB -> {file_path}")
+    #     return []
 
     # 3. Load PDF
     try:

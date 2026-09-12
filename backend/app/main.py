@@ -1,10 +1,13 @@
+# https://ik.imagekit.io/k5imwrh1hh/rag_documents/TruthLens_AI_Technical_Report_-4Nhw845Y.pdf
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.prompts import PromptTemplate
 from fastapi.responses import StreamingResponse
 from imagekitio import ImageKit
 from DB.database import db
+from app.Ingestion.vectorstore.pinecone_service import delete_conversation_documents
 from app.agents.Main_agent.graph import create_graph
+from utils.utils import validate_document_url
 from app.Ingestion.processor import complete_Ingestion
 from langchain.messages import SystemMessage,HumanMessage
 from langchain_community.document_loaders import PyPDFLoader
@@ -148,6 +151,8 @@ async def chat(body:ChatRequest,request:Request):
         chatbot = request.app.state.chatbot
 
         async def event_generator(data):
+            print("-------------------started api------------------------")
+            print(data.conversation_id,data.user_id)
 
             async for event in chatbot.astream_events(
                 {"messages":[HumanMessage(body.query)],"query":data.query,"final_response":"nothing","conversation_id":data.conversation_id,"user_id":data.user_id},
@@ -159,10 +164,7 @@ async def chat(body:ChatRequest,request:Request):
                 version="v2"
             ):
                 try:
-                    # print(event['event'])
-                    # print(event)
-                    # print("="*100)
-
+                    
                     if event["event"] == "on_tool_start":
 
                         yield sse_event(
@@ -172,18 +174,17 @@ async def chat(body:ChatRequest,request:Request):
                     elif event["event"] == "on_parser_end":
                         # here finally the decesion node makes the final decesion
                         print("----------------------------------------------")
-                        print(event['data']['output'].msg)
-                        yield sse_event(
-                            "on_parser_end",
-                            event['data']['output'].msg
-                        )
+                        # print(event)
+                        if(event['data']['output'].is_query_relevant=='false'):
+                            yield sse_event(
+                                "on_parser_end",
+                                event['data']['output'].msg
+                            )
 
                     elif (
                         event["event"] == "on_chat_model_stream"
                         and event["data"]["chunk"].content
                     ):
-                        print(event["data"])
-                        print("="*100)
                         yield sse_event(
                         "message",
                         event["data"]["chunk"].content
@@ -289,6 +290,9 @@ async def RAG_process_delete_file_pipeline(
 
 ):
     try:
+        valid_or_not=await validate_document_url(path)
+        if(valid_or_not==False):
+            raise Exception("Url is not valid")
         result=await get_document(path,signature,token,expire,user_id,conversation_id)
         """
         "success": True,
@@ -445,3 +449,36 @@ async def delete_document(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while deleting document: {str(e)}"
         )
+
+class DeleteConversationRequest(BaseModel):
+    user_id: str
+    conversation_id: str
+
+@app.delete("/api/delete_pinecone_index_with_user_id_and_conversation_id")
+async def delete_conversation_documents_endpoint(
+    request: DeleteConversationRequest,
+):
+    try:
+        delete_conversation_documents(
+            user_id=request.user_id,
+            conversation_id=request.conversation_id,
+        )
+
+        return {
+            "success": True,
+            "message": "Conversation documents deleted successfully.",
+            "user_id": request.user_id,
+            "conversation_id": request.conversation_id,
+        }
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=str(exc),
+        ) from exc
