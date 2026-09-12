@@ -8,7 +8,7 @@ from app.agents.Main_agent.nodes.retriever import retriever_node
 from app.agents.Main_agent.nodes.genrator import genrator
 from app.agents.Main_agent.nodes.decision import rag_decision_node
 graph=StateGraph(AgentState)
-def create_graph(checkpointer):
+def create_graph():
   graph.add_node("decesion",rag_decision_node)
   graph.add_node("retriever",retriever_node)
   graph.add_node("genrator",genrator)
@@ -17,7 +17,7 @@ def create_graph(checkpointer):
   graph.add_conditional_edges("decesion",router)
   graph.add_edge("retriever","genrator")
   graph.add_edge("genrator",END)
-  AGENTIC_RAG=graph.compile(checkpointer)
+  AGENTIC_RAG=graph.compile()
   return AGENTIC_RAG
 
 

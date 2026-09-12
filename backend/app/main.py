@@ -58,14 +58,14 @@ async def lifespan(
     # Connect PostgreSQL
     # ---------------------------------------------
 
-    checkpointer = await db.connect()
+    # checkpointer = await db.connect()
 
     # ---------------------------------------------
     # Create LangGraph chatbot
     # ---------------------------------------------
 
     app.state.chatbot = create_graph(
-        checkpointer
+        # checkpointer
     )
 
     print("🤖 Chatbot initialized")
