@@ -1,4 +1,4 @@
-import { useState,useRef } from "react";
+import { useState,useRef} from "react";
 import {
   Menu,
   Mic,
@@ -33,7 +33,7 @@ export default function ChatWindow({
   IsStreaming
 }: Props) {  
   const [input, setInput] = useState("");
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement|null>(null);
   
   
 const {ActiveConversation,user}=useUser()

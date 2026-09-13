@@ -23,6 +23,7 @@ import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import axios, { AxiosError } from "axios"
 import { supabase } from "../utils/supabase";
+import ProcessingLoader from "../components/ui/processing_Loader";
 
 export default function Analyze() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -778,7 +779,15 @@ setAnalyzerPageVisible(true)
       {uploading && (
         <div className="absolute  inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md">
 
-          <div className="flex flex-col items-center">
+          {uploadProgress==100?<ProcessingLoader
+  time={3}
+  statements={[
+    "Reading your document",
+    "Understanding the content",
+    "Finding relevant information",
+    "Preparing your answer",
+  ]}
+/>:<div className="flex flex-col items-center">
 
             {/* Circular progress */}
             <div className="relative h-32 w-32">
@@ -836,7 +845,7 @@ setAnalyzerPageVisible(true)
             <p className="mt-1 text-xs text-slate-500">
               Please don't close this window
             </p>
-          </div>
+          </div>}
         </div>
       )}
     </div>

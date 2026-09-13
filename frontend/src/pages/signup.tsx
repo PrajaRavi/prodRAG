@@ -7,6 +7,7 @@ import Button from "../components/ui/button"
 import { supabase } from "../utils/supabase";
 import { localUsre } from "../utils/const";
 import { useUser } from "../context/Global";
+// import ProcessingLoader from "../components/ui/processing_Loader";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -53,6 +54,8 @@ export default function Signup() {
   };
 
   return (
+    <>
+    
     <main className="flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-5">
       {/* Background decoration */}
       <div className="pointer-events-none absolute inset-0">
@@ -117,5 +120,7 @@ export default function Signup() {
         </form>
       </div>
     </main>
+    </>
+
   );
 }
