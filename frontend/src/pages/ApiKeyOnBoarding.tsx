@@ -65,7 +65,7 @@ export default function ApiKeyOnboarding({
 }: ApiKeyOnboardingProps) {
   return (
     <main className="flex h-full flex-1 items-center hide-scrollbar justify-center overflow-y-auto bg-slate-950 px-5 py-10 text-white md:px-10">
-      <div className="w-full max-w-5xl relative  top-20">
+      <div className="w-full max-w-5xl relative  md:top-20 top-110">
 
         {/* Header */}
         <div className="mx-auto max-w-2xl text-center ">

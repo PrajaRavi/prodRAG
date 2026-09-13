@@ -45,7 +45,7 @@ export default function ConversationList({
             className={ActiveConversation.id==conversation.id?"group flex border-blue-300 border items-center gap-3 rounded-xl p-3 transition hover:bg-white/5":"group flex  items-center cursor-pointer gap-3 rounded-xl p-3 transition hover:bg-white/5"}
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
-              {VectorDeleteSignal && ActiveConversation.id==conversation.id?
+              {VectorDeleteSignal? 
               <CircularLoader  className="w-3 h-3"/>:<FileText size={16} className="text-blue-400" />}
             </div>
 
@@ -63,7 +63,7 @@ export default function ConversationList({
               onClick={() =>
                 onDelete(conversation.id)
               }
-              className="rounded-lg p-2 text-slate-600 opacity-0 transition hover:bg-red-500/10 hover:text-red-400 group-hover:opacity-100"
+              className="rounded-lg p-2   transition hover:bg-red-500/10 text-red-400 opacity-100"
               aria-label="Delete conversation"
             >
               <Trash2 size={15} />

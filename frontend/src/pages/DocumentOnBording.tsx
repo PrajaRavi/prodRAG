@@ -71,7 +71,7 @@ export default function DocumentOnboarding() {
 
 <div className="absolute -right-25 -bottom-50 h-100 w-100 rounded-full bg-purple-600/10 blur-[120px]" />      </div>
 
-      <div className="relative z-10 w-full max-w-7xl pt-10">
+      <div className="relative z-10 w-full max-w-7xl md:pt-10 pt-70">
         {/* Header */}
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">

@@ -1,5 +1,6 @@
 import {  useEffect, useState } from "react";
 // import { nanoid } from 'nanoid'
+// 1d059f65-18d6-45bb-b608-38e08a0da047
 import { v4 as uuidv4 } from "uuid"
 import Sidebar from "../components/analyze/sidebar";
 import ChatWindow from "../components/analyze/ChatWindow";
@@ -152,6 +153,7 @@ try {
 
   const handleDeleteConversation = async (id: string) => {
     console.log("Delete conversation:", id);
+    // return setVectorDeleteSignal(true)
     let result=await DeleteConversationFromSupabaseWithID(id,Number(user.id))
     if(result.success==false){
       throw new Error(`Supabase Error: in handleDeleteConversation`);
