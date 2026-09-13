@@ -51,3 +51,7 @@ export interface FetchConversationOptions {
   pageSize?: number;  // Number of records per page (default: 10)
   user_id?:number
 }
+export interface PaginationConversationOptions {
+  page?: number;      // 1-based page index (default: 1)
+  total_page?: number;  // Number of records per page (default: 10)
+}

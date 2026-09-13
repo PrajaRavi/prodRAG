@@ -103,7 +103,7 @@ return (
           {/* IntersectionObserver sentinel */}
       <div
         ref={bottomRef}
-        className="h-3 bg-red-700 relative top-24"
+        className="h-3  bg-none relative top-24"
       />
         </div>
       </div>

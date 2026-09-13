@@ -25,7 +25,12 @@ import axios, { AxiosError } from "axios"
 import { supabase } from "../utils/supabase";
 import ProcessingLoader from "../components/ui/processing_Loader";
 
-export default function Analyze() {
+interface Props {
+  ConversationHistorySignal:boolean;
+  handleShowMoreConversationHistory:()=>Promise<void>
+}
+
+export default function Analyze({ConversationHistorySignal,handleShowMoreConversationHistory}:Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {ConversationHistory,setConversationHistory,setActiveConversation}=useUser()
   let [VectorDeleteSignal,setVectorDeleteSignal]=useState<boolean>(false)
@@ -715,6 +720,8 @@ setAnalyzerPageVisible(true)
         {/* Desktop sidebar */}
         <div className="hidden w-75 shrink-0 lg:block">
           <Sidebar
+          handleShowMoreConversationHistory={handleShowMoreConversationHistory}
+          ConversationHistorySignal={ConversationHistorySignal}
           VectorDeleteSignal={VectorDeleteSignal}
             user={user}
             apiKeys={apiKeys}
@@ -740,6 +747,8 @@ setAnalyzerPageVisible(true)
 
             <div className="relative h-full w-[85%] max-w-[320px]">
               <Sidebar
+              handleShowMoreConversationHistory={handleShowMoreConversationHistory}
+              ConversationHistorySignal={ConversationHistorySignal}
               VectorDeleteSignal={VectorDeleteSignal}
                 user={user}
                 apiKeys={apiKeys}
@@ -758,6 +767,7 @@ setAnalyzerPageVisible(true)
         )}
 
         {/* Chat */}
+       
         {<ChatWindow
         IsStreaming={IsStreaming}
 

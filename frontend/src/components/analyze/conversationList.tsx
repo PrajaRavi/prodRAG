@@ -4,17 +4,22 @@ import type { Conversation } from "../../types";
 import "../../index.css"
 import { CircularLoader } from "../ui/CircularLoader";
 import { useUser } from "../../context/Global";
+import Button from "../ui/button";
 interface Props {
   conversations: Conversation[];
   onDelete: (id: string) => void;
   VectorDeleteSignal:boolean
+  ConversationHistorySignal:boolean
+  handleShowMoreConversationHistory:()=>Promise<void>
 
 }
 
 export default function ConversationList({
   conversations,
   onDelete,
-  VectorDeleteSignal
+  VectorDeleteSignal,
+  ConversationHistorySignal,
+  handleShowMoreConversationHistory
 
 }: Props) {
   const {ActiveConversation,setActiveConversation}=useUser()
@@ -27,7 +32,11 @@ export default function ConversationList({
       </div>
 
       <div className="space-y-1">
-        {conversations.map((conversation) => (
+        {ConversationHistorySignal?
+        <div className="text-white text-xl">
+          <h1>loading conversation...</h1>
+        </div>
+        :conversations.map((conversation) => (
           <div
             onClick={()=>{
               setActiveConversation(conversation)
@@ -68,6 +77,16 @@ export default function ConversationList({
           </div>
         )}
       </div>
+      <Button
+      onClick={handleShowMoreConversationHistory}
+            type="button"
+            className="w -full gap-2 bg-blue-600 text-center text-white hover:bg-blue-500"
+            
+            >
+            show more
+          </Button>
+            
+
     </section>
   );
 }

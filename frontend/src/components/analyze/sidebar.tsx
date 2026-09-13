@@ -21,6 +21,9 @@ interface Props {
   onLogout: () => void;
   onClose?: () => void;
   VectorDeleteSignal:boolean
+  ConversationHistorySignal:boolean
+  handleShowMoreConversationHistory:()=>Promise<void>
+   
 }
 
 export default function Sidebar({
@@ -31,7 +34,9 @@ export default function Sidebar({
   onDeleteConversation,
   onLogout,
   onClose,
-  VectorDeleteSignal
+  VectorDeleteSignal,
+  ConversationHistorySignal,
+  handleShowMoreConversationHistory
 }: Props) {
   return (
     <aside className="flex h-full w-full flex-col border-r border-white/10 bg-slate-950">
@@ -64,6 +69,8 @@ export default function Sidebar({
       />}
 
       <ConversationList
+      handleShowMoreConversationHistory={handleShowMoreConversationHistory}
+      ConversationHistorySignal={ConversationHistorySignal}
       VectorDeleteSignal={VectorDeleteSignal}
         conversations={conversations}
         onDelete={onDeleteConversation}

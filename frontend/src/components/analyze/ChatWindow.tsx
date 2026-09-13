@@ -23,14 +23,15 @@ interface Props {
   onSend: (message: string) => void;
   onOpenSidebar: () => void;
   onDocumentUpload: (file: File) => void;
-  IsStreaming:boolean
+  IsStreaming:boolean;
+  
 }
 export default function ChatWindow({
   messages,
   onSend,
   onOpenSidebar,
   onDocumentUpload,
-  IsStreaming
+  IsStreaming,
 }: Props) {  
   const [input, setInput] = useState("");
   const messagesContainerRef = useRef<HTMLDivElement|null>(null);

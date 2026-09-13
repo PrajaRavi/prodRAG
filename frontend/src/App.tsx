@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import {  localUsre } from "./utils/const";
 import { supabase } from "./utils/supabase";
 import { toast } from "react-toastify";
-import type { Conversation, FetchConversationOptions, User } from "./types";
+import type { Conversation, FetchConversationOptions, PaginationConversationOptions, User } from "./types";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -20,13 +20,31 @@ function App() {
   let [AnalyzerPageVisible,setAnalyzerPageVisible]=useState<boolean>(false)
   let [ConversationHistory,setConversationHistory]=useState<Conversation[]>([])
   let [ActiveConversation,setActiveConversation]=useState<Conversation>({id:"",doc_name:""})
+  let [ConversationHistorySignal,setConversationHistorySignal]=useState<boolean>(false)
+  let [ConversationHistoryPagination,setConversationHistoryPagination]=useState<PaginationConversationOptions>({page:1,total_page:1})
+  
+  
 
 
 
+
+  async function handleShowMoreConversationHistory(){
+    try {
+      if(Number(ConversationHistoryPagination.page)>Number(ConversationHistoryPagination.total_page)){
+        toast.warn("you are at end")
+        return 
+      }
+      await getConversationHistory({page:Number(ConversationHistoryPagination.page),pageSize:1,user_id:user.id})
+    } catch (error) {
+      console.log(error)
+    }
+  }
   async function getConversationHistory({ page = 1, pageSize = 10 ,user_id}: FetchConversationOptions = {}) {
   // Calculate zero-based offsets for range query
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
+  try {
+    setConversationHistorySignal(true)
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
   console.log("get-conversation-history")
   console.log(user)
   const { data, error, count } = await supabase
@@ -40,19 +58,32 @@ function App() {
     console.error('Error fetching conversation history:', error);
     throw error;
   }
-  if(page<=Number(count)){
-    
-    setConversationHistory([...ConversationHistory,...data])
-    
+  if(page==1){
+    setConversationHistory(data)
   }
-  return {
-    data,
-    page,
-    pageSize,
-    totalCount: count ?? 0,
-    totalPages: count ? Math.ceil(count / pageSize) : 0,
-    hasMore: count ? to < count - 1 : false,
-  };
+
+  else if(page<=Number(count)){
+    setConversationHistory([...ConversationHistory,...data])
+  }
+    
+    
+  setConversationHistoryPagination({page:page+1,total_page:count ? Math.ceil(count / pageSize) : 0})
+  console.log(count ? Math.ceil(count / pageSize) : 0)
+  // return {
+  //   data,
+  //   page,
+  //   pageSize,
+  //   totalCount: count ?? 0,
+  //   totalPages: count ? Math.ceil(count / pageSize) : 0,
+  //   hasMore: count ? to < count - 1 : false,
+  // };
+} catch (error) {
+  console.log(error)
+  throw new Error("something went wrong in getConversationHistory")
+}finally{
+    setConversationHistorySignal(false)
+
+}
 }
   
    async function GetUser(email:string){
@@ -90,7 +121,7 @@ function App() {
   useEffect(()=>{
 if(localStorage.getItem(localUsre) && user.id!=0){
   console.log("chala")
-  getConversationHistory({page:1,pageSize:10,user_id:user.id});
+  getConversationHistory({page:1,pageSize:1,user_id:user.id});
   
   
 }
@@ -110,7 +141,7 @@ if(localStorage.getItem(localUsre) && user.id!=0){
         <Route path="/signup" element={<Signup/>} />
 
         {/* /analyze → RAG Chat Page */}
-        <Route path="/analyze" element={<Analyze />} />
+        <Route path="/analyze" element={<Analyze  ConversationHistorySignal={ConversationHistorySignal} handleShowMoreConversationHistory={handleShowMoreConversationHistory}/>} />
         {/* Must be last */}
   <Route path="*" element={<NotFound />} />
       </Routes>
