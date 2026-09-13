@@ -14,8 +14,7 @@ setAnalyzerPageVisible(false)
     <div className="min-h-screen bg-slate-950 text-white">
       
       <main className="relative overflow-hidden pt-16">
-        <div className="absolute left-1/2 top-0 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-blue-600/10 blur-3xl" />
-
+<div className="absolute left-1/2 top-0 h-125 w-175 -translate-x-1/2 rounded-full bg-blue-600/10 blur-3xl" />
         <section className="relative mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl flex-col items-center justify-center px-5 py-20 text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/5 px-4 py-2 text-sm text-blue-300">
             <BrainCircuit size={16} />
@@ -64,7 +63,7 @@ setAnalyzerPageVisible(false)
               return (
                 <div
                   key={item.title}
-                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition duration-300 hover:-translate-y-1"
+                  className="rounded-2xl border border-white/10 bg-white/3 p-5 transition duration-300 hover:-translate-y-1"
                 >
                   <Icon
                     size={22}

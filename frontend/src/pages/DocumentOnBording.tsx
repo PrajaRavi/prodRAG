@@ -5,7 +5,7 @@ import {
   MessageCircle,
   Lightbulb,
   ArrowRight,
-  ArrowDown,
+  // ArrowDown,
   FileText,
   Search,
   Brain,
@@ -67,10 +67,9 @@ export default function DocumentOnboarding() {
     <section className="relative flex  h-full   min-h-0 w-full items-center justify-center hide-scrollbar overflow-y-auto bg-slate-950 px-4 py-10 sm:px-6 lg:px-8">
       {/* Background decoration */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-[-180px] h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[120px]" />
+        <div className="absolute left-1/2 -top-45 h-100 w-100 -translate-x-1/2 rounded-full bg-blue-600/10 blur-[120px]" />
 
-        <div className="absolute bottom-[-200px] right-[-100px] h-[400px] w-[400px] rounded-full bg-purple-600/10 blur-[120px]" />
-      </div>
+<div className="absolute -right-25 -bottom-50 h-100 w-100 rounded-full bg-purple-600/10 blur-[120px]" />      </div>
 
       <div className="relative z-10 w-full max-w-7xl pt-10">
         {/* Header */}
@@ -82,7 +81,7 @@ export default function DocumentOnboarding() {
 
           <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
             Turn Your Documents into{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
               Insights
             </span>
           </h1>
@@ -105,7 +104,7 @@ export default function DocumentOnboarding() {
                   className="flex min-w-0 flex-1 items-center"
                 >
                   {/* Step card */}
-                  <div className="group relative flex w-full flex-col rounded-2xl border border-white/10 bg-white/[0.025] p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 hover:bg-white/[0.04]">
+                  <div className="group relative flex w-full flex-col rounded-2xl border border-white/10 bg-white/2.5 p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 hover:bg-white/4">
                     {/* Number */}
                     <div className="absolute -top-4 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-blue-400/30 bg-slate-900 text-xs font-bold text-blue-400 shadow-lg shadow-blue-500/10">
                       {step.number}
@@ -122,7 +121,7 @@ export default function DocumentOnboarding() {
                         {step.title}
                       </h3>
 
-                      <p className="mt-2 min-h-[60px] text-sm leading-5 text-slate-400">
+                      <p className="mt-2 min-h-15 text-sm leading-5 text-slate-400">
                         {step.description}
                       </p>
                     </div>
@@ -160,7 +159,7 @@ export default function DocumentOnboarding() {
         <div className="md:hidden">
           <div className="relative mx-auto max-w-md">
             {/* Vertical line */}
-            <div className="absolute bottom-8 left-[27px] top-8 w-px bg-gradient-to-b from-blue-500/50 via-purple-500/30 to-transparent" />
+            <div className="absolute bottom-8 left-6.75 top-8 w-px bg-linear-to-b from-blue-500/50 via-purple-500/30 to-transparent" />
 
             <div className="space-y-5 pt-30">
               {steps.map((step, index) => {
@@ -186,7 +185,7 @@ export default function DocumentOnboarding() {
                     </div>
 
                     {/* Card */}
-                    <div className="flex-1 rounded-2xl border border-white/10 bg-white/[0.025] p-4 backdrop-blur-xl">
+                    <div className="flex-1 rounded-2xl border border-white/10 bg-white/2.5 p-4 backdrop-blur-xl">
                       <div className="flex items-center justify-between gap-3">
                         <h3 className="text-sm font-semibold text-white">
                           {step.title}
@@ -205,7 +204,7 @@ export default function DocumentOnboarding() {
                         {step.details.map((detail) => (
                           <span
                             key={detail}
-                            className="rounded-md border border-white/5 bg-white/[0.03] px-2 py-1 text-[10px] text-slate-500"
+                            className="rounded-md border border-white/5 bg-white/3 px-2 py-1 text-[10px] text-slate-500"
                           >
                             {detail}
                           </span>

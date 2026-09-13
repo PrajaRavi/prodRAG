@@ -105,7 +105,7 @@ export default function ApiKeyOnboarding({
               return (
                 <div
                   key={service.name}
-                  className="group relative rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-blue-400/20 hover:bg-white/[0.05]"
+                  className="group relative rounded-2xl border border-white/10 bg-white/3 p-4 transition hover:border-blue-400/20 hover:bg-white/4"
                 >
                   {/* External link */}
                   <a
@@ -159,7 +159,7 @@ export default function ApiKeyOnboarding({
               return (
                 <div
                   key={step.number}
-                  className="relative rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+                  className="relative rounded-2xl border border-white/10 bg-white/3 p-5"
                 >
                   <div className="mb-5 flex items-center justify-between">
                     <span className="text-xs font-semibold tracking-widest text-blue-400">

@@ -1,4 +1,4 @@
-import { useState,useEffect,useRef } from "react";
+import { useState,useRef } from "react";
 import {
   Menu,
   Mic,
@@ -9,13 +9,14 @@ import {
 
 import type { ChatHistory } from "../../types";
 
-import ChatMessage from "./ChatMessage";
-import DocumentOnboarding from "../../pages/DocumentOnBording";
-import { Link } from "react-router";
+// import ChatMessage from "./ChatMessage";
+// import DocumentOnboarding from "../../pages/DocumentOnBording";
+import { Link} from "react-router";
 import "../../App.css"
 import { useUser } from "../../context/Global";
 import { toast } from "react-toastify";
-import ApiKeyOnboarding from "../../pages/ApiKeyOnBoarding";
+// import ApiKeyOnboarding from "../../pages/ApiKeyOnBoarding";
+import ChatList from "../ui/ChatList";
 
 interface Props {
   messages: ChatHistory[];
@@ -34,7 +35,8 @@ export default function ChatWindow({
   const [input, setInput] = useState("");
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   
-  const {ActiveConversation,user}=useUser()
+  
+const {ActiveConversation,user}=useUser()
   const handleSend = () => {
     if(ActiveConversation.id==""){
       return toast.warn("upload document or select any conversation")
@@ -50,55 +52,53 @@ export default function ChatWindow({
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
+    console.log(e.key)
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
-  useEffect(() => {
-  const container = messagesContainerRef.current;
-
-  if (!container) return;
-
-  container.scrollTo({
-    top: container.scrollHeight,
-    behavior: "smooth",
-  });
-}, [messages]);
-  const MainSection=()=>{
-    if(messages.length==0 && Number(user.count)<2 ){
-      return (
-        <DocumentOnboarding/>
-      )
-    }
-    else if(Number(user.count)>1){
-      return (
-        <ApiKeyOnboarding/>
-      )
-    }
-    else{
-return (
-  <div
-  ref={messagesContainerRef} 
-  className="flex-1 overflow-y-auto hide-scrollbar ">
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6">
-          {messages.map((message) => (
-            <ChatMessage
-            IsStreaming={IsStreaming}
-              key={message.id}
-              message={message}
-            />
-          ))}
-        </div>
-      </div>
-)
-    }
-  }
+  
+//   const MainSection=()=>{
+//     if(messages.length==0 && Number(user.count)<2 ){
+//       return (
+//         <DocumentOnboarding/>
+//       )
+//     }
+//     else if(Number(user.count)>1){
+//       return (
+//         <ApiKeyOnboarding/>
+//       )
+//     }
+//     else{
+// return (
+//   <div
+//   ref={messagesContainerRef} 
+//   className="flex-1 overflow-y-auto hide-scrollbar ">
+//         <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6">
+//           {messages.map((message) => (
+//             <ChatMessage
+            
+//             IsStreaming={IsStreaming}
+//               key={message.id}
+//               message={message}
+//             />
+//           ))}
+//           {/* IntersectionObserver sentinel */}
+//       <div
+//         ref={bottomRef}
+//         className="h-3 bg-red-600   relative top-24"
+//       />
+//         </div>
+//       </div>
+// )
+//     }
+//   }
 
   return (
     <>
-    <main className="flex min-w-0   flex-1 flex-col bg-slate-900/40">
+    <main className="flex min-w-0 h-screen  flex-1 flex-col bg-slate-900/40">
       {/* Header */}
       <header className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-4 sm:px-6">
         <button
@@ -124,12 +124,13 @@ return (
       </header>
 
       {/* Messages */}
-      <MainSection/>
+      
+      <ChatList IsStreaming={IsStreaming} messages={messages} messagesContainerRef={messagesContainerRef} />
       
 
       {/* Composer */}
       <div className="shrink-0 border-t border-white/10 bg-slate-950/60 p-3 backdrop-blur-xl sm:p-5">
-       {Number(user.count)<2 && <div className="mx-auto flex max-w-4xl items-end gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-2">
+       {Number(user.count)<2 && <div className="mx-auto flex max-w-4xl items-end gap-2 rounded-2xl border border-white/10 bg-white/4 p-2">
         <input
   id="document-upload"
   type="file"

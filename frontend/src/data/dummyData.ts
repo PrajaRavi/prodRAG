@@ -7,7 +7,7 @@ import type {
 export const dummyUser: User = {
   name: "Ravi Prajapati",
   email: "ravi@example.com",
-  id:2
+  id: 2
 };
 
 export const dummyConversations: Conversation[] = [

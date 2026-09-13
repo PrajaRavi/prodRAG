@@ -174,7 +174,7 @@ async def chat(body:ChatRequest,request:Request):
                     elif event["event"] == "on_parser_end":
                         # here finally the decesion node makes the final decesion
                         print("----------------------------------------------")
-                        # print(event)
+                        print(event)
                         if(event['data']['output'].is_query_relevant=='false'):
                             yield sse_event(
                                 "on_parser_end",

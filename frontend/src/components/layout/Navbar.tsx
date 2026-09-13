@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { BrainCircuit } from "lucide-react";
-import { localUsre } from "../../utils/const";
+// import { localUsre } from "../../utils/const";
 import { useUser } from "../../context/Global";
 
 export default function Navbar() {

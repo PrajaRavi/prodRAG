@@ -59,7 +59,7 @@ export default function NotFound() {
 
   const [snake, setSnake] = useState<Point[]>(INITIAL_SNAKE);
   const [food, setFood] = useState<Point>(INITIAL_FOOD);
-  const [direction, setDirection] =
+  const [_, setDirection] =
     useState<Direction>("RIGHT");
 
   const [score, setScore] = useState(0);
@@ -202,9 +202,9 @@ export default function NotFound() {
     <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
       {/* Background */}
       <div className="pointer-events-none fixed inset-0">
-        <div className="absolute left-1/2 top-[-200px] h-[450px] w-[450px] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[130px]" />
+        <div className="absolute left-1/2 -top-50 h-112.5 w-112.5 -translate-x-1/2 rounded-full bg-blue-600/10 blur-[130px]" />
 
-        <div className="absolute bottom-[-150px] right-[-100px] h-[350px] w-[350px] rounded-full bg-purple-600/10 blur-[120px]" />
+<div className="absolute -right-25 -bottom-37.5 h-87.5 w-87.5 rounded-full bg-purple-600/10 blur-[120px]" />
       </div>
 
       <div className="relative z-10 mx-auto pt-20 flex min-h-screen w-full max-w-5xl flex-col px-4 py-5 sm:px-6">
@@ -212,7 +212,7 @@ export default function NotFound() {
         <div className="flex items-center">
           <button
             onClick={() => navigate("/")}
-            className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-slate-400 backdrop-blur-xl transition-all duration-300 hover:border-blue-500/30 hover:bg-white/[0.06] hover:text-white"
+           className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-slate-400 backdrop-blur-xl transition-all duration-300 hover:border-blue-500/30 hover:bg-white/6 hover:text-white"
           >
             <ArrowLeft
               size={16}
@@ -233,7 +233,7 @@ export default function NotFound() {
           {/* 404 */}
           <div className="mb-3 text-center">
             <h1 className="text-6xl font-black tracking-tight sm:text-7xl md:text-8xl">
-              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-blue-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
                 404
               </span>
             </h1>
@@ -249,9 +249,9 @@ export default function NotFound() {
           </div>
 
           {/* Game container */}
-          <div className="mt-7 w-full max-w-[620px]">
+          <div className="mt-7 w-full max-w-155">
             {/* Score bar */}
-            <div className="mb-3 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 backdrop-blur-xl">
+            <div className="mb-3 flex items-center justify-between rounded-xl border border-white/10 bg-white/2.5 px-4 py-3 backdrop-blur-xl">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-slate-600">
                   Snake.exe
@@ -289,7 +289,7 @@ export default function NotFound() {
                 }).map((_, index) => (
                   <div
                     key={index}
-                    className="border-[0.5px] border-white/[0.025]"
+                    className="border-[0.5px] border-white/2.5"
                   />
                 ))}
 

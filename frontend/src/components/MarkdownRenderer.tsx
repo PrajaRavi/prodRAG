@@ -52,11 +52,11 @@ export default function MarkdownRenderer({ content }: Props) {
 
         // Updated code renderer compatible with react-markdown v9+
         code({ node, className, children, ...props }) {
-          const match = /language-(\w+)/.exec(className || "");
-          const codeString = String(children).replace(/\n$/, "");
+          // const match = /language-(\w+)/.exec(className || "");
+          // const codeString = String(children).replace(/\n$/, "");
 
-          // Check if code block contains newlines or has language specification
-          const isCodeBlock = match || codeString.includes("\n");
+          // // Check if code block contains newlines or has language specification
+          // const isCodeBlock = match || codeString.includes("\n");
 
           
           return (

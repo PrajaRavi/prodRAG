@@ -6,7 +6,7 @@ import TypingIndicator from "../ThinkingIndicator";
 
 interface Props {
   message: ChatHistory;
-  IsStreaming:boolean
+  IsStreaming:boolean;
 }
 
 export default function ChatMessage({ message ,IsStreaming}: Props) {
@@ -28,7 +28,7 @@ export default function ChatMessage({ message ,IsStreaming}: Props) {
         className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 sm:max-w-[75%] ${
           isUser
             ? "rounded-br-md bg-blue-600 text-white"
-            : "rounded-bl-md border border-white/10 bg-white/[0.04] text-slate-300"
+            : "rounded-bl-md border border-white/10 bg-white/4 text-slate-300"
         }`}
       >
         {/* <p>hello bhai</p>

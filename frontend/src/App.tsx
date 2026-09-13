@@ -7,7 +7,7 @@ import Navbar from "./components/layout/Navbar";
 import Signup from "./pages/signup";
 import {UserContext} from "./context/Global"
 import { useEffect, useState } from "react";
-import { LOCAL_CONVERSATION_HISTORY, localUsre } from "./utils/const";
+import {  localUsre } from "./utils/const";
 import { supabase } from "./utils/supabase";
 import { toast } from "react-toastify";
 import type { Conversation, FetchConversationOptions, User } from "./types";

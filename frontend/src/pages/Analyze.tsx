@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 // import { nanoid } from 'nanoid'
 import { v4 as uuidv4 } from "uuid"
 import Sidebar from "../components/analyze/sidebar";
@@ -17,7 +17,7 @@ import type {
   ImageKitUploadResponse,
 } from "../types";
 
-import { FASTAPI_BASE_URL, IMAGEKIT_PUBLIC_KEY, IMAGEKIT_UPLOAD_ENDPOINT, LOCAL_CONVERSATION_HISTORY, localUsre } from "../utils/const";
+import { FASTAPI_BASE_URL, IMAGEKIT_PUBLIC_KEY, IMAGEKIT_UPLOAD_ENDPOINT, localUsre } from "../utils/const";
 import { useUser } from "../context/Global";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
@@ -492,6 +492,7 @@ const UpdateUserCount=async (email:string,newCount:number)=>{
     toast.error("something went wrong during count increment")
     return false
   }
+  console.log(data)
   return true
   } catch (error) {
     console.log(error)
@@ -711,7 +712,7 @@ setAnalyzerPageVisible(true)
       <div className="flex h-full">
 
         {/* Desktop sidebar */}
-        <div className="hidden w-[300px] shrink-0 lg:block">
+        <div className="hidden w-75 shrink-0 lg:block">
           <Sidebar
           VectorDeleteSignal={VectorDeleteSignal}
             user={user}
