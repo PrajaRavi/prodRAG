@@ -549,8 +549,11 @@ const UpdateUserCount=async (email:string,newCount:number)=>{
 
     const sizeInMB = file.size / (1024 * 1024);
     
-    if(sizeInMB>10)
-      return toast.error("file size should be less than 1o mb")
+    if(sizeInMB>10){
+
+      setUploading(false)
+      return toast.error("file size should be less than 10 mb")
+    }
     try {
       // Step A: Fetch authentication parameters from FastAPI backend
       const authResponse = await axios.get<ImageKitAuthResponse>(
