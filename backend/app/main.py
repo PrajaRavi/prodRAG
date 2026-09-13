@@ -31,7 +31,7 @@ origins = [
     "http://localhost:3000",      # React default port
     "http://localhost:5173",      # Vite default port
     "http://127.0.0.1:5173",
-    "https://your-domain.com",    # Production frontend URL
+    "https://prodrag-2.onrender.com",    # Production frontend URL
 ]
 import os
 from pydantic import BaseModel
