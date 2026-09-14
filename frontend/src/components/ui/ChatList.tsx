@@ -76,7 +76,7 @@ interface Props {
     }, [messages, isAtBottom]);
   
   
-    if(messages.length==0 && Number(user.count)<2 ){
+    if((messages.length==0 && Number(user.count)<2) || String(user.api_configured)=="true" ){
       return (
         <DocumentOnboarding/>
       )

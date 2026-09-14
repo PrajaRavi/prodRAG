@@ -23,6 +23,9 @@ interface Props {
   VectorDeleteSignal:boolean
   ConversationHistorySignal:boolean
   handleShowMoreConversationHistory:()=>Promise<void>
+  ConfigureAPIkey:()=>Promise<void>;
+  ConfigAPiKeySignal:boolean
+  
    
 }
 
@@ -36,7 +39,9 @@ export default function Sidebar({
   onClose,
   VectorDeleteSignal,
   ConversationHistorySignal,
-  handleShowMoreConversationHistory
+  handleShowMoreConversationHistory,
+  ConfigureAPIkey,
+  ConfigAPiKeySignal
 }: Props) {
   return (
     <aside className="flex h-full w-full flex-col border-r border-white/10 bg-slate-950">
@@ -61,7 +66,9 @@ export default function Sidebar({
         )}
       </div>
 
-      {Number(user?.count)>1 && <ApiKeysComponent
+      {(Number(user?.count)>1) && <ApiKeysComponent
+      ConfigAPiKeySignal={ConfigAPiKeySignal}
+      ConfigureAPIkey={ConfigureAPIkey}
         pinecone={apiKeys.pinecone}
         groq={apiKeys.groq}
         gemini={apiKeys.gemini}

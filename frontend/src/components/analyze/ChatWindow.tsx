@@ -131,7 +131,7 @@ const {ActiveConversation,user}=useUser()
 
       {/* Composer */}
       <div className="shrink-0 border-t border-white/10 bg-slate-950/60 p-3 backdrop-blur-xl sm:p-5">
-       {Number(user.count)<2 && <div className="mx-auto flex max-w-4xl items-end gap-2 rounded-2xl border border-white/10 bg-white/4 p-2">
+       {(Number(user.count)<2 || String(user.api_configured)=="true") && <div className="mx-auto flex max-w-4xl items-end gap-2 rounded-2xl border border-white/10 bg-white/4 p-2">
         <input
   id="document-upload"
   type="file"

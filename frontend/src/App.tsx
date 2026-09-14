@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import type { Conversation, FetchConversationOptions, PaginationConversationOptions, User } from "./types";
 import NotFound from "./pages/NotFound";
 
+
 function App() {
   let [IsLogin,setIsLogin]=useState<boolean>(false)
   let [user,setuser]=useState<User>({email:"",id:0,name:""})
@@ -34,7 +35,7 @@ function App() {
         toast.warn("you are at end")
         return 
       }
-      await getConversationHistory({page:Number(ConversationHistoryPagination.page),pageSize:1,user_id:user.id})
+      await getConversationHistory({page:Number(ConversationHistoryPagination.page),pageSize:6,user_id:user.id})
     } catch (error) {
       console.log(error)
     }
@@ -88,7 +89,7 @@ function App() {
   
    async function GetUser(email:string){
     try {
-      let {data,error}:{data:any,error:any}=await supabase.from("users").select("id,email,name,count")
+      let {data,error}:{data:any,error:any}=await supabase.from("users").select("id,email,name,count,GROQ_API_KEY,GEMINI_API_KEY,PINECONE_API_KEY,api_configured")
                                 .eq('email', email) // Filters where the email column matches
                                  // Optional: Returns a single object instead of an array of objects
         console.log(data)//->array-->empty
@@ -119,9 +120,10 @@ function App() {
   },[IsLogin])
 
   useEffect(()=>{
+    
 if(localStorage.getItem(localUsre) && user.id!=0){
   console.log("chala")
-  getConversationHistory({page:1,pageSize:1,user_id:user.id});
+  getConversationHistory({page:1,pageSize:6,user_id:user.id});
   
   
 }

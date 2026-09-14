@@ -35,6 +35,7 @@ export default function Analyze({ConversationHistorySignal,handleShowMoreConvers
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {ConversationHistory,setConversationHistory,setActiveConversation}=useUser()
   let [VectorDeleteSignal,setVectorDeleteSignal]=useState<boolean>(false)
+  let [ConfigAPiKeySignal,setConfigAPiKeySignal]=useState<boolean>(false)
 
   const { user, setIsLogin, IsLogin,setAnalyzerPageVisible,ActiveConversation } = useUser();
   const navigate = useNavigate();
@@ -45,6 +46,40 @@ export default function Analyze({ConversationHistorySignal,handleShowMoreConvers
     gemini: "",
   });
 
+  async function ConfigureAPIkey(){
+    try {
+      setConfigAPiKeySignal(true)
+      if(apiKeys.pinecone=="" || apiKeys.groq=="" || apiKeys.gemini==""){
+         toast.warn("all keys are required")
+         return
+      }
+      let obj={GROQ_API_KEY:apiKeys.groq,GEMINI_API_KEY:apiKeys.gemini,PINECONE_API_KEY:apiKeys.pinecone,email:user.email}
+      let {data}=await axios.post(`${FASTAPI_BASE_URL}/api/configure_api_keys`,obj)
+      await delete_vectors_in_pinecone_with_userid(String(user.id),"helllo");
+      await DeleteConversationFromSupabaseWithUserId("hello",user.id)
+
+      // send these api key in backend as it is. https[will take care of security]
+      if(data.success){
+        
+        toast.success("configured successfully!!!!")
+
+        
+        window.location.reload()
+        
+      }
+      else{
+        toast.error("API keys are wrong")
+      }
+
+
+      
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setConfigAPiKeySignal(false)
+
+    }
+  }
   // const [conversations, setConversations] =
   //   useState<Conversation[]>(ConversationHistory);
 
@@ -130,11 +165,56 @@ try {
     };
   }
   }
+  const DeleteConversationFromSupabaseWithUserId=async (id:string,user_id:number)=>{
+try {
+    const { data, error } = await supabase
+      .from("conversation_history")
+      .delete()
+      .eq('user_id', user_id)
+      .select();
+
+    // Supabase returns API/Database errors inside the 'error' object instead of throwing
+    if (error) {
+      throw new Error(`Supabase Error: ${error.message} (Code: ${error.code})`);
+    }
+
+    // Optional safety check if no row matched the provided ID
+    if (!data || data.length === 0) {
+      console.warn(`No record found with ID: ${id}`);
+    }
+
+    return { success: true, deletedData: data };
+  } catch (err: any) {
+    // Catches both thrown Supabase API errors and network failure exceptions
+    console.error("Failed to delete conversation document:", err.message || err);
+
+    return {
+      success: false,
+      error: err.message || "An unexpected error occurred during deletion.",
+    };
+  }
+  }
 
   const delete_vectors_in_pinecone= async (user_id:string,conversation_id:string)=>{
     try {
       setVectorDeleteSignal(true)
       let {data}=await axios.delete(`${FASTAPI_BASE_URL}/api/delete_pinecone_index_with_user_id_and_conversation_id`,{data:{user_id,conversation_id}})
+      if(data?.success){
+        return true
+      }
+
+    } catch (error) {
+      console.log(error)
+      throw  new Error("something went wrong in delete_vectors_in_pinecone")
+    }finally{
+      setVectorDeleteSignal(false)
+    }
+    // /api/delete_pinecone_index_with_user_id_and_conversation_id
+  }
+  const delete_vectors_in_pinecone_with_userid= async (user_id:string,conversation_id:string)=>{
+    try {
+      setVectorDeleteSignal(true)
+      let {data}=await axios.delete(`${FASTAPI_BASE_URL}/api/delete_pinecone_index_with_user_id`,{data:{user_id,conversation_id}})
       if(data?.success){
         return true
       }
@@ -215,7 +295,8 @@ const response = await fetch(
     body: JSON.stringify({
       query: content,
       user_id: String(user.id),
-      conversation_id:String(ActiveConversation.id)
+      conversation_id:String(ActiveConversation.id),
+      api_configured:user.api_configured?"true":"false"
       
     }),
   }
@@ -725,6 +806,9 @@ setAnalyzerPageVisible(true)
         {/* Desktop sidebar */}
         <div className="hidden w-75 shrink-0 lg:block">
           <Sidebar
+          ConfigAPiKeySignal={ConfigAPiKeySignal}
+          ConfigureAPIkey={ConfigureAPIkey}
+
           handleShowMoreConversationHistory={handleShowMoreConversationHistory}
           ConversationHistorySignal={ConversationHistorySignal}
           VectorDeleteSignal={VectorDeleteSignal}
@@ -752,6 +836,8 @@ setAnalyzerPageVisible(true)
 
             <div className="relative h-full w-[85%] max-w-[320px]">
               <Sidebar
+              ConfigAPiKeySignal={ConfigAPiKeySignal}
+              ConfigureAPIkey={ConfigureAPIkey}
               handleShowMoreConversationHistory={handleShowMoreConversationHistory}
               ConversationHistorySignal={ConversationHistorySignal}
               VectorDeleteSignal={VectorDeleteSignal}

@@ -9,6 +9,7 @@ class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
     is_rag_query:str=Field(description="return true or false")
     retrieved_chunks:List[Document]
+    api_configured:str=Field(description="true or false")
     rag_reason:str
     query:str
     context:str

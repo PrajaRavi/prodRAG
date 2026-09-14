@@ -5,9 +5,9 @@ from langchain_core.prompts import PromptTemplate
 from fastapi.responses import StreamingResponse
 from imagekitio import ImageKit
 from DB.database import db
-from app.Ingestion.vectorstore.pinecone_service import delete_conversation_documents
+from app.Ingestion.vectorstore.pinecone_service import delete_conversation_documents,delete_conversation_documents_by_user_id
 from app.agents.Main_agent.graph import create_graph
-from utils.utils import validate_document_url
+from utils.utils import validate_document_url,encrypt_api_key,decrypt_api_key,test_gemini_api_key,test_groq_api_key,test_pinecone_api_key
 from app.Ingestion.processor import complete_Ingestion
 from langchain.messages import SystemMessage,HumanMessage
 from langchain_community.document_loaders import PyPDFLoader
@@ -17,7 +17,9 @@ from langchain_community.vectorstores import FAISS
 from fastapi.responses import JSONResponse
 from fastapi import Query,status,HTTPException
 from fastapi.requests import Request
+from cachetools import TTLCache
 from fastapi.responses import Response
+from supabase import create_client,Client
 import json
 # import json
 import hmac
@@ -40,12 +42,17 @@ IMAGEKIT_PRIVATE_KEY = settings.IMAGEKIT_PRIVATE_KEY
 IMAGEKIT_URL_ENDPOINT_BASE = settings.IMAGEKIT_BASE_URL
 img_kit_id=settings.IMAGEKIT_ID
 
-
+llm_cache = TTLCache(
+    maxsize=100,
+    ttl=3600,  # 1 hour
+)
+supabase:Client=create_client(settings.SUPABASE_URL,settings.SUPABASE_PUBLISHABLE_KEY)
 
 class ChatRequest(BaseModel):
     query: str
     conversation_id:str
     user_id:str
+    api_configured:str
     # thread_id: str
 
 
@@ -144,6 +151,9 @@ def hello():
 @app.post("/chat")
 async def chat(body:ChatRequest,request:Request):
     try:
+        print("cached_data")
+        items=dict(llm_cache.items())
+        print(items)
         # result=await AGENTIC_RAG.ainvoke({"messages":[HumanMessage(body.query)],"query":body.query,"final_response":"nothing","conversation_id":body.conversation_id,"user_id":body.user_id})
         # print(result)
         # print(result['messages'][-1].content)
@@ -155,7 +165,7 @@ async def chat(body:ChatRequest,request:Request):
             print(data.conversation_id,data.user_id)
 
             async for event in chatbot.astream_events(
-                {"messages":[HumanMessage(body.query)],"query":data.query,"final_response":"nothing","conversation_id":data.conversation_id,"user_id":data.user_id},
+                {"messages":[HumanMessage(body.query)],"query":data.query,"final_response":"nothing","conversation_id":data.conversation_id,"user_id":data.user_id,"api_configured":data.api_configured},
                 config={
                     "configurable": {
                         "thread_id": body.conversation_id
@@ -174,7 +184,7 @@ async def chat(body:ChatRequest,request:Request):
                     elif event["event"] == "on_parser_end":
                         # here finally the decesion node makes the final decesion
                         print("----------------------------------------------")
-                        print(event)
+                        # print(event)
                         if(event['data']['output'].is_query_relevant=='false'):
                             yield sse_event(
                                 "on_parser_end",
@@ -454,6 +464,70 @@ class DeleteConversationRequest(BaseModel):
     user_id: str
     conversation_id: str
 
+class ConfigureApiKey(BaseModel):
+    GROQ_API_KEY: str
+    GEMINI_API_KEY: str
+    PINECONE_API_KEY:str
+    email:str
+
+
+
+@app.post("/api/configure_api_keys")
+async def configure(configure:ConfigureApiKey):
+    try:
+        groq=encrypt_api_key(configure.GROQ_API_KEY)
+        gemini=encrypt_api_key(configure.GEMINI_API_KEY)
+        pinecone=encrypt_api_key(configure.PINECONE_API_KEY)
+
+        #! now cache the user api keys
+        llm_cache[configure.email]={"GROQ":configure.GROQ_API_KEY,"GEMINI":configure.GEMINI_API_KEY,"PINECONE":configure.PINECONE_API_KEY}
+
+        print("cached_data")
+        items=dict(llm_cache.items())
+        print(items)
+                
+
+        groq_test_result=await test_groq_api_key(configure.GROQ_API_KEY)
+        gemini_test_result=await test_gemini_api_key(configure.GEMINI_API_KEY)
+        pinecone_test_result=await test_pinecone_api_key(configure.PINECONE_API_KEY)
+        print(groq_test_result,gemini_test_result,pinecone_test_result)
+        if(groq_test_result and gemini_test_result and pinecone_test_result):
+            supabase.from_("users").update({"GROQ_API_KEY":groq,"GEMINI_API_KEY":gemini,"PINECONE_API_KEY":pinecone,"api_configured":True}).eq("email",configure.email).execute()
+            # print(groq_test_result,gemini_test_result,pinecone_test_result)
+            return JSONResponse({"success":True,"msg":"done"})
+        else:
+            return JSONResponse({"success":False,"msg":"API keys are wrong"})
+
+    except Exception as e:
+        raise Exception(str(e))
+    
+@app.delete("/api/delete_pinecone_index_with_user_id")
+async def delete(request: DeleteConversationRequest):
+    try:
+            delete_conversation_documents_by_user_id(
+                user_id=request.user_id,
+            )
+    
+            return {
+                "success": True,
+                "message": "Conversation documents deleted successfully.",
+                "user_id": request.user_id,
+                "conversation_id": request.conversation_id,
+            }
+    
+    except ValueError as exc:
+            raise HTTPException(
+                status_code=400,
+                detail=str(exc),
+            ) from exc
+    
+    except RuntimeError as exc:
+            raise HTTPException(
+                status_code=500,
+                detail=str(exc),
+            ) from exc    
+
+    
 @app.delete("/api/delete_pinecone_index_with_user_id_and_conversation_id")
 async def delete_conversation_documents_endpoint(
     request: DeleteConversationRequest,

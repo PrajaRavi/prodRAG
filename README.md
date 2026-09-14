@@ -2,6 +2,7 @@
 ```
 ProductionRAGFromScratch
 ├─ backend
+│  ├─ .dockerignore
 │  ├─ .env
 │  ├─ .logfire
 │  │  └─ logfire_credentials.json
@@ -17,6 +18,8 @@ ProductionRAGFromScratch
 │  │  │  │  │  └─ __init__.py
 │  │  │  │  ├─ state.py
 │  │  │  │  └─ __init__.py
+│  │  │  └─ __init__.py
+│  │  ├─ ApiKeyConfig
 │  │  │  └─ __init__.py
 │  │  ├─ config.py
 │  │  ├─ DB
@@ -39,20 +42,88 @@ ProductionRAGFromScratch
 │  │  │  │  └─ __init__.py
 │  │  │  └─ __init__.py
 │  │  ├─ main.py
+│  │  ├─ user_config.py
 │  │  └─ __init__.py
-│  ├─ assets
-│  │  ├─ DBMS_Full_Notes.pdf
-│  │  ├─ second.pdf
-│  │  └─ third.pdf
 │  ├─ DB
 │  │  └─ database.py
+│  ├─ Dockerfile
 │  ├─ README.md
-│  ├─ requirement.txt
+│  ├─ requirements.txt
 │  ├─ services
-│  │  └─ llms.py
 │  └─ utils
 │     ├─ prompts.py
 │     └─ utils.py
-└─ frontend
+├─ docker-compose.yaml
+├─ frontend
+│  ├─ .env
+│  ├─ eslint.config.js
+│  ├─ index.html
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ public
+│  │  ├─ favicon.svg
+│  │  └─ icons.svg
+│  ├─ README.md
+│  ├─ src
+│  │  ├─ App.css
+│  │  ├─ App.tsx
+│  │  ├─ assets
+│  │  │  ├─ 3dravi.png
+│  │  │  ├─ app.png
+│  │  │  ├─ clean-clothes.png
+│  │  │  ├─ clothing-hanger.png
+│  │  │  ├─ iron.png
+│  │  │  ├─ logo.png
+│  │  │  ├─ logo.svg
+│  │  │  ├─ logo1.png
+│  │  │  ├─ music
+│  │  │  │  ├─ reciver.mp3
+│  │  │  │  └─ send.mp3
+│  │  │  ├─ react.svg
+│  │  │  ├─ sport-shoe.png
+│  │  │  ├─ t-shirt.png
+│  │  │  └─ washing_machine.png
+│  │  ├─ components
+│  │  │  ├─ analyze
+│  │  │  │  ├─ Apikey.tsx
+│  │  │  │  ├─ ChatMessage.tsx
+│  │  │  │  ├─ ChatWindow.tsx
+│  │  │  │  ├─ conversationList.tsx
+│  │  │  │  └─ sidebar.tsx
+│  │  │  ├─ layout
+│  │  │  │  └─ Navbar.tsx
+│  │  │  ├─ MarkdownRenderer.tsx
+│  │  │  ├─ ThinkingIndicator.tsx
+│  │  │  └─ ui
+│  │  │     ├─ button.tsx
+│  │  │     ├─ ChatList.tsx
+│  │  │     ├─ CircularLoader.tsx
+│  │  │     ├─ Input.tsx
+│  │  │     └─ processing_Loader.tsx
+│  │  ├─ context
+│  │  │  └─ Global.tsx
+│  │  ├─ data
+│  │  │  └─ dummyData.ts
+│  │  ├─ index.css
+│  │  ├─ main.tsx
+│  │  ├─ pages
+│  │  │  ├─ Analyze.tsx
+│  │  │  ├─ ApiKeyOnBoarding.tsx
+│  │  │  ├─ DocumentOnBording.tsx
+│  │  │  ├─ landing.tsx
+│  │  │  ├─ Login.tsx
+│  │  │  ├─ NotFound.tsx
+│  │  │  └─ signup.tsx
+│  │  ├─ README.md
+│  │  ├─ types
+│  │  │  └─ index.ts
+│  │  └─ utils
+│  │     ├─ const.ts
+│  │     └─ supabase.ts
+│  ├─ tsconfig.app.json
+│  ├─ tsconfig.json
+│  ├─ tsconfig.node.json
+│  └─ vite.config.ts
+└─ README.md
 
 ```

@@ -77,6 +77,7 @@ if not PINECONE_INDEX_NAME:
 # Embeddings
 # ============================================================
 
+
 try:
     embeddings = llms.embeddings
 
@@ -134,9 +135,9 @@ try:
 
     vector_store = PineconeVectorStore(
         index=pinecone_index,
-
         embedding=embeddings,
         namespace=PINECONE_NAMESPACE,
+
     )
 
 except Exception as exc:
@@ -518,6 +519,32 @@ def delete_conversation_documents(
             filter={
                 "user_id": {"$eq": user_id.strip()},
                 "conversation_id": {"$eq": conversation_id.strip()},
+            },
+            namespace=PINECONE_NAMESPACE,
+        )
+
+    except PineconeException as exc:
+        raise RuntimeError(
+            "Failed to delete conversation documents from Pinecone."
+        ) from exc
+
+    except Exception as exc:
+        print(exc)
+        raise RuntimeError(
+            "Unexpected error while deleting conversation documents."
+        ) from exc
+
+def delete_conversation_documents_by_user_id(
+    user_id: str
+) -> None:
+    if not user_id or not user_id.strip():
+        raise ValueError("user_id cannot be empty.")
+
+    
+    try:
+        pinecone_index.delete(
+            filter={
+                "user_id": {"$eq": user_id.strip()},
             },
             namespace=PINECONE_NAMESPACE,
         )

@@ -1,11 +1,15 @@
-import { ArrowRight, KeyRound } from "lucide-react";
+import {  KeyRound, } from "lucide-react";
 import Input from "../ui/Input";
 import Button from "../ui/button"
+import { CircularLoader } from "../ui/CircularLoader";
+import { useUser } from "../../context/Global";
 
 interface ApiKeysProps {
   pinecone: string;
   groq: string;
   gemini: string;
+  ConfigureAPIkey:()=>Promise<void>;
+  ConfigAPiKeySignal:boolean
 
   onChange: (
     key: "pinecone" | "groq" | "gemini",
@@ -18,14 +22,17 @@ export default function ApiKeys({
   groq,
   gemini,
   onChange,
+  ConfigureAPIkey,
+  ConfigAPiKeySignal
 }: ApiKeysProps) {
+  const {user}=useUser()
   return (
     <section className="border-b border-white/10 p-4">
       <div className="mb-4 flex items-center gap-2">
         <KeyRound size={17} className="text-blue-400" />
 
         <h2 className="text-sm font-semibold text-white">
-          API Configuration
+          API Configuration{user.api_configured&&"[Done✅✅]"}
         </h2>
       </div>
 
@@ -57,12 +64,15 @@ export default function ApiKeys({
           }
         />
         <Button
-            // onClick={handleLogin}
+            onClick={ConfigureAPIkey}
             disabled={!gemini.trim() || !groq.trim() || !pinecone.trim()}
             className="w-full gap-2 bg-blue-600 text-white hover:bg-blue-500"
           >
-            Configure
-            <ArrowRight size={17} />
+
+            {ConfigAPiKeySignal?<div className="w-7 h-7">
+            <CircularLoader  color="#fff" />
+            </div>:"Configure"
+            }
           </Button>
       </div>
     </section>

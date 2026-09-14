@@ -5,12 +5,14 @@ interface CircularLoaderProps {
   /** Stroke width in pixels relative to SVG viewBox (default: 8) */
   strokeWidth?: number;
   className?: string;
+  color?:string
 }
 
 export function CircularLoader({
   progress,
   strokeWidth = 8,
   className = "",
+  color="#4E9DF8"
 }: CircularLoaderProps) {
   const isDeterminate = typeof progress === "number";
   const normalizedProgress = isDeterminate
@@ -35,7 +37,7 @@ export function CircularLoader({
           cx="50"
           cy="50"
           r={radius}
-          stroke="#4E9DF8"
+          stroke={color}
           strokeWidth={strokeWidth}
           strokeOpacity="0.15"
           fill="transparent"
@@ -46,7 +48,7 @@ export function CircularLoader({
           cx="50"
           cy="50"
           r={radius}
-          stroke="#4E9DF8"
+          stroke={color}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={isDeterminate ? strokeDashoffset : circumference * 0.75}

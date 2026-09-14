@@ -21,6 +21,10 @@ export interface User {
   count?:number;
   name: string;
   email: string;
+  groq?:string;
+  pinecone?:string;
+  gemini?:string;
+  api_configured?:boolean
 }
 
 export interface ImageKitAuthResponse {

@@ -53,6 +53,10 @@ class Settings:
     # --- HIVE API ---
     HIVE_API_KEY=os.getenv("HIVE_API_KEY")
 
+    # --- SUPABASE API ---
+    SUPABASE_URL=os.getenv("SUPABASE_URL")
+    SUPABASE_PUBLISHABLE_KEY=os.getenv("SUPABASE_PUBLISHABLE_KEY")
+
     # --- IMAGEKIT API ---
     IMAGEKIT_ID=os.getenv("IMAGEKIT_ID")
     IMAGEKIT_BASE_URL=os.getenv("IMAGEKIT_BASE_URL")
@@ -86,6 +90,8 @@ os.environ["LANGCHAIN_ENDPOINT"] = os.getenv("LANGSMITH_ENDPOINT", "https://api.
 settings = Settings()
 
 class LLMs:
+
+    
     PRIMARY_GROQ_LLM=ChatGroq(
     model="openai/gpt-oss-120b",
     api_key=settings.GROQ_API_KEY,
@@ -153,3 +159,4 @@ class LLMs:
     )
 
 llms=LLMs()
+
