@@ -1,14 +1,15 @@
 import httpx
 import os
 from cryptography.fernet import Fernet
-from google import genai
 from app.config import llms
-from groq import AsyncGroq
+from pydantic import BaseModel,Field
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
 from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 import asyncio
+from cachetools import TTLCache
+
 def format_docs(retrieved_docs):
   context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
   print(context_text)
@@ -71,25 +72,21 @@ async def test_groq_api_key(groq_api_key: str) -> bool:
         if not groq_api_key or not isinstance(groq_api_key, str):
             raise ValueError("API key must be a non-empty string.")
 
-        client = AsyncGroq(api_key=groq_api_key.strip())
-
-        response = await client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": "Respond with 'ok' if you receive this message.",
-                }
-            ],
-            model="openai/gpt-oss-120b",
-        )
-
-        content = response.choices[0].message.content
-        return bool(content and len(content.strip()) > 0)
-
+        groq_llm=ChatGroq(
+        model="openai/gpt-oss-120b",
+        api_key=groq_api_key,
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+    )   
+        result=await groq_llm.ainvoke("hello how are you??")
+        return bool(result.content and len(result.content.split())>0)
     except Exception as e:
         print(f"[Groq Test Failed]: {e}")
         return False
 
+class Gemini_Ans(BaseModel):
+    ans:str=Field(...,description="ans")
 
 async def test_gemini_api_key(gemini_api_key: str) -> bool:
     """Tests a Gemini API key asynchronously using the official Google GenAI AsyncClient."""
@@ -98,14 +95,18 @@ async def test_gemini_api_key(gemini_api_key: str) -> bool:
             raise ValueError("API key must be a non-empty string.")
 
         # Using the non-blocking async client
-        client = genai.Client(api_key=gemini_api_key.strip()).aio
-
-        response = await client.models.generate_content(
+        gemini_llm=ChatGoogleGenerativeAI(
             model="gemini-3.5-flash-lite",
-            contents="Respond with 'ok' if you receive this message.",
+            api_key=gemini_api_key,
+            # model="gemini-3.1-flash-lite-image",
+            max_tokens=None,
+            timeout=None,
+            max_retries=2,
         )
-
-        return bool(response.text and len(response.text.strip()) > 0)
+        struct_op=gemini_llm.with_structured_output(Gemini_Ans,method="function_calling")
+        result=await struct_op.ainvoke("hello how are you??")
+        print(result)
+        return bool(result.ans and len(result.ans.split())>0)
 
     except Exception as e:
         print(f"[Gemini Test Failed]: {e}")
@@ -118,6 +119,7 @@ async def test_gemini_api_key(gemini_api_key: str) -> bool:
 import asyncio
 from pinecone import Pinecone, ServerlessSpec
 from langchain_pinecone import PineconeVectorStore
+
 
 async def test_pinecone_api_key(
     pinecone_api_key: str, index_name: str = "temp-test-index"
@@ -217,3 +219,10 @@ def get_gemini_llm(
         timeout=None,
         max_retries=2,
     )
+
+llm_cache = TTLCache(
+    maxsize=100,
+    ttl=3600,  # 1 hour
+)
+
+

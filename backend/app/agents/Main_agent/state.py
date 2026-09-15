@@ -7,7 +7,7 @@ from langchain_core.messages import HumanMessage,SystemMessage,AIMessage,BaseMes
 
 class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
-    is_rag_query:str=Field(description="return true or false")
+    is_rag_query:str=Field(description="return true or false",default="true")
     retrieved_chunks:List[Document]
     api_configured:str=Field(description="true or false")
     rag_reason:str
@@ -15,4 +15,5 @@ class AgentState(TypedDict):
     context:str
     final_response:str
     user_id:str
+    email:str
     conversation_id:str

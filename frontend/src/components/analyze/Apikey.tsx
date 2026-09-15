@@ -5,7 +5,7 @@ import { CircularLoader } from "../ui/CircularLoader";
 import { useUser } from "../../context/Global";
 
 interface ApiKeysProps {
-  pinecone: string;
+  pinecone?: string;
   groq: string;
   gemini: string;
   ConfigureAPIkey:()=>Promise<void>;
@@ -18,7 +18,7 @@ interface ApiKeysProps {
 }
 
 export default function ApiKeys({
-  pinecone,
+  // pinecone,
   groq,
   gemini,
   onChange,
@@ -37,14 +37,14 @@ export default function ApiKeys({
       </div>
 
       <div className="space-y-3">
-        <Input
+        {/* <Input
           type="password"
           placeholder="Pinecone API key"
           value={pinecone}
           onChange={(e) =>
             onChange("pinecone", e.target.value)
           }
-        />
+        /> */}
 
         <Input
           type="password"
@@ -65,7 +65,7 @@ export default function ApiKeys({
         />
         <Button
             onClick={ConfigureAPIkey}
-            disabled={!gemini.trim() || !groq.trim() || !pinecone.trim()}
+            disabled={!gemini.trim() || !groq.trim()}
             className="w-full gap-2 bg-blue-600 text-white hover:bg-blue-500"
           >
 

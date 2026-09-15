@@ -49,11 +49,11 @@ export default function Analyze({ConversationHistorySignal,handleShowMoreConvers
   async function ConfigureAPIkey(){
     try {
       setConfigAPiKeySignal(true)
-      if(apiKeys.pinecone=="" || apiKeys.groq=="" || apiKeys.gemini==""){
+      if(apiKeys.groq=="" || apiKeys.gemini==""){
          toast.warn("all keys are required")
          return
       }
-      let obj={GROQ_API_KEY:apiKeys.groq,GEMINI_API_KEY:apiKeys.gemini,PINECONE_API_KEY:apiKeys.pinecone,email:user.email}
+      let obj={GROQ_API_KEY:apiKeys.groq,GEMINI_API_KEY:apiKeys.gemini,PINECONE_API_KEY:"nothing",email:user.email}
       let {data}=await axios.post(`${FASTAPI_BASE_URL}/api/configure_api_keys`,obj)
       await delete_vectors_in_pinecone_with_userid(String(user.id),"helllo");
       await DeleteConversationFromSupabaseWithUserId("hello",user.id)
@@ -296,7 +296,8 @@ const response = await fetch(
       query: content,
       user_id: String(user.id),
       conversation_id:String(ActiveConversation.id),
-      api_configured:user.api_configured?"true":"false"
+      api_configured:user.api_configured?"true":"false",
+      email:user?.email
       
     }),
   }

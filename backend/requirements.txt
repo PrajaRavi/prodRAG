@@ -31,6 +31,8 @@ langchain-pinecone>=0.2.13
  langgraph-checkpoint-postgres>=2.0.0
  psycopg-binary>=3.2.0
  pypdf>=5.0.0
+ cachetools>=7.1.5
+ supabase>=2.31.0
 # --- Utilities & Performance ---
 python-dotenv>=1.0.1
 sse-starlette>=2.0.0    # Required for streaming responses (Server-Sent Events) to React

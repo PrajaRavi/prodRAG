@@ -2,7 +2,7 @@ from typing import TypedDict
 from app.agents.Main_agent.state import AgentState
 from pydantic import BaseModel, Field
 from app.config import llms
-from utils.utils import get_gemini_llm,get_groq_llm
+from utils.utils import get_gemini_llm,get_groq_llm,llm_cache
 from langchain_core.messages import BaseMessage
 
 
@@ -11,7 +11,7 @@ from langchain_core.messages import BaseMessage
 # ============================================================
 
 class RAGDecision(BaseModel):
-    is_query_relevant: str = Field(
+    is_query_relevant: str = Field(...,
         description=(
             "true only when the user's query genuinely requires "
             "retrieval from the user's documents. false for "
@@ -21,7 +21,7 @@ class RAGDecision(BaseModel):
         )
     )
 
-    msg: str = Field(
+    msg: str = Field(...,
         description=(
             "simple polite refusal statement"
         )
@@ -32,6 +32,7 @@ class RAGDecision(BaseModel):
 # ============================================================
 # Decision Node
 # ============================================================
+decision_llm=None
 
 async def rag_decision_node(
     state: AgentState,
@@ -61,11 +62,19 @@ async def rag_decision_node(
     # --------------------------------------------------------
     # Structured-output LLM
     # --------------------------------------------------------
-    # decision_llm=None
+    
+    global decision_llm
 
-    decision_llm = llms.PRIMARY_GROQ_LLM.with_structured_output(
-        RAGDecision
-    )
+    if(state['api_configured']=="true"):
+        print("🚀🚀🚀🎯🎯🎯using users groq llm")
+        print(f"GEMINI_API_KEY {llm_cache[state['email']]['GEMINI']}")
+        decision_llm=get_gemini_llm(llm_cache[state['email']]['GEMINI']).with_structured_output(RAGDecision,method="function_calling")
+
+    else:
+        # global decision_llm
+        print("using RaviPraj groq llm")
+        decision_llm = llms.PRIMARY_GROQ_LLM.with_structured_output(RAGDecision,method="function_calling")
+
 
     # --------------------------------------------------------
     # System prompt
@@ -156,32 +165,28 @@ Return ONLY the structured RAGDecision object.
             ]
         )
 
+        print("---------------------printing decesion---------------------")    
+        print("---------------------printing decesion---------------------")    
+        print("---------------------printing decesion---------------------")    
+        print(decision)
+        if(str(decision.is_query_relevant).lower()=="false"):
+            return {
+            "is_rag_query": str(decision.is_query_relevant).lower(),
+            "final_response":"I am a Document Analyzer don't ask me these stupid questions?"
+        
+        }
+
+        return {"is_rag_query": str(decision.is_query_relevant).lower()}
     except Exception as exc:
         # Fail closed:
         # If the classifier itself fails, don't send an
         # unclassified query directly into the RAG pipeline.
-        return {
+        print({
             "is_query_relevant": "false",
             "rag_reason": (
                 "RAG decision failed; query was not routed "
                 "to document retrieval."
-            ),
-        }
+            )
+        })
+        raise Exception(str(exc))
 
-    # --------------------------------------------------------
-    # Return decision to LangGraph state
-    # --------------------------------------------------------
-    print("---------------------printing decesion---------------------")    
-    print(decision)
-    if(str(decision.is_query_relevant).lower()=="false"):
-        return {
-        "is_rag_query": decision.is_query_relevant,
-        "final_response":"I am a Document Analyzer don't ask me these stupid questions?"
-      
-    }
-
-    return {
-        "is_rag_query": decision.is_query_relevant,
-        
-      
-    }

@@ -76,12 +76,12 @@ interface Props {
     }, [messages, isAtBottom]);
   
   
-    if((messages.length==0 && Number(user.count)<2) || String(user.api_configured)=="true" ){
+    if((messages.length==0 && Number(user.count)<2) || (String(user.api_configured)=="true" && messages.length==0) ){
       return (
         <DocumentOnboarding/>
       )
     }
-    else if(Number(user.count)>1){
+    else if(Number(user.count)>1 && String(user.api_configured)=="false"){
       return (
         <ApiKeyOnboarding/>
       )

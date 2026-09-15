@@ -7,7 +7,7 @@ from imagekitio import ImageKit
 from DB.database import db
 from app.Ingestion.vectorstore.pinecone_service import delete_conversation_documents,delete_conversation_documents_by_user_id
 from app.agents.Main_agent.graph import create_graph
-from utils.utils import validate_document_url,encrypt_api_key,decrypt_api_key,test_gemini_api_key,test_groq_api_key,test_pinecone_api_key
+from utils.utils import validate_document_url,encrypt_api_key,decrypt_api_key,test_gemini_api_key,test_groq_api_key,test_pinecone_api_key,llm_cache
 from app.Ingestion.processor import complete_Ingestion
 from langchain.messages import SystemMessage,HumanMessage
 from langchain_community.document_loaders import PyPDFLoader
@@ -17,7 +17,6 @@ from langchain_community.vectorstores import FAISS
 from fastapi.responses import JSONResponse
 from fastapi import Query,status,HTTPException
 from fastapi.requests import Request
-from cachetools import TTLCache
 from fastapi.responses import Response
 from supabase import create_client,Client
 import json
@@ -42,16 +41,13 @@ IMAGEKIT_PRIVATE_KEY = settings.IMAGEKIT_PRIVATE_KEY
 IMAGEKIT_URL_ENDPOINT_BASE = settings.IMAGEKIT_BASE_URL
 img_kit_id=settings.IMAGEKIT_ID
 
-llm_cache = TTLCache(
-    maxsize=100,
-    ttl=3600,  # 1 hour
-)
 supabase:Client=create_client(settings.SUPABASE_URL,settings.SUPABASE_PUBLISHABLE_KEY)
 
 class ChatRequest(BaseModel):
     query: str
     conversation_id:str
     user_id:str
+    email:str
     api_configured:str
     # thread_id: str
 
@@ -152,12 +148,20 @@ def hello():
 async def chat(body:ChatRequest,request:Request):
     try:
         print("cached_data")
-        items=dict(llm_cache.items())
-        print(items)
-        # result=await AGENTIC_RAG.ainvoke({"messages":[HumanMessage(body.query)],"query":body.query,"final_response":"nothing","conversation_id":body.conversation_id,"user_id":body.user_id})
-        # print(result)
-        # print(result['messages'][-1].content)
-        # return result['final_response']
+        # print(llm_cache.get(body.email))
+        
+        if(not llm_cache.get(body.email)):
+            result=supabase.from_("users").select("GROQ_API_KEY,GEMINI_API_KEY,api_configured").eq("email",body.email).execute()
+            response=result.data[0]
+            print(response)
+            if(len(response)>0 and response['api_configured']==True):
+                groq=decrypt_api_key(response['GROQ_API_KEY'])
+                gemini=decrypt_api_key(response['GEMINI_API_KEY'])
+                print(groq,gemini)
+                CACHE_USER_DATA(groq,gemini,body.email)
+                
+                
+                        
         chatbot = request.app.state.chatbot
 
         async def event_generator(data):
@@ -165,7 +169,7 @@ async def chat(body:ChatRequest,request:Request):
             print(data.conversation_id,data.user_id)
 
             async for event in chatbot.astream_events(
-                {"messages":[HumanMessage(body.query)],"query":data.query,"final_response":"nothing","conversation_id":data.conversation_id,"user_id":data.user_id,"api_configured":data.api_configured},
+                {"messages":[HumanMessage(body.query)],"query":data.query,"final_response":"nothing","conversation_id":data.conversation_id,"user_id":data.user_id,"api_configured":data.api_configured,"email":data.email},
                 config={
                     "configurable": {
                         "thread_id": body.conversation_id
@@ -471,17 +475,21 @@ class ConfigureApiKey(BaseModel):
     email:str
 
 
+def CACHE_USER_DATA(groq:str,gemini:str,email:str):
+    llm_cache[email]={"GROQ":groq,"GEMINI":gemini}
+    return True
+
+
 
 @app.post("/api/configure_api_keys")
 async def configure(configure:ConfigureApiKey):
     try:
         groq=encrypt_api_key(configure.GROQ_API_KEY)
         gemini=encrypt_api_key(configure.GEMINI_API_KEY)
-        pinecone=encrypt_api_key(configure.PINECONE_API_KEY)
+        # pinecone=encrypt_api_key(configure.PINECONE_API_KEY)
 
         #! now cache the user api keys
-        llm_cache[configure.email]={"GROQ":configure.GROQ_API_KEY,"GEMINI":configure.GEMINI_API_KEY,"PINECONE":configure.PINECONE_API_KEY}
-
+        CACHE_USER_DATA(configure.GROQ_API_KEY,configure.GEMINI_API_KEY,configure.email)
         print("cached_data")
         items=dict(llm_cache.items())
         print(items)
@@ -489,10 +497,10 @@ async def configure(configure:ConfigureApiKey):
 
         groq_test_result=await test_groq_api_key(configure.GROQ_API_KEY)
         gemini_test_result=await test_gemini_api_key(configure.GEMINI_API_KEY)
-        pinecone_test_result=await test_pinecone_api_key(configure.PINECONE_API_KEY)
-        print(groq_test_result,gemini_test_result,pinecone_test_result)
-        if(groq_test_result and gemini_test_result and pinecone_test_result):
-            supabase.from_("users").update({"GROQ_API_KEY":groq,"GEMINI_API_KEY":gemini,"PINECONE_API_KEY":pinecone,"api_configured":True}).eq("email",configure.email).execute()
+        # pinecone_test_result=await test_pinecone_api_key(configure.PINECONE_API_KEY)
+        print(groq_test_result,gemini_test_result)
+        if(groq_test_result and gemini_test_result):
+            supabase.from_("users").update({"GROQ_API_KEY":groq,"GEMINI_API_KEY":gemini,"api_configured":True}).eq("email",configure.email).execute()
             # print(groq_test_result,gemini_test_result,pinecone_test_result)
             return JSONResponse({"success":True,"msg":"done"})
         else:

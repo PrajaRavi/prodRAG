@@ -1,7 +1,7 @@
 export interface Conversation {
   id: string;
   doc_name: string;
-  user_id?:string
+  user_id?: string
 }
 
 export interface ChatHistory {
@@ -17,14 +17,14 @@ export interface ApiKeys {
 }
 
 export interface User {
-  id:number;
-  count?:number;
+  id: number;
+  count?: number;
   name: string;
   email: string;
-  groq?:string;
-  pinecone?:string;
-  gemini?:string;
-  api_configured?:boolean
+  groq?: string;
+  pinecone?: string;
+  gemini?: string;
+  api_configured?: boolean
 }
 
 export interface ImageKitAuthResponse {
@@ -53,7 +53,7 @@ export interface ImageKitUploadResponse {
 export interface FetchConversationOptions {
   page?: number;      // 1-based page index (default: 1)
   pageSize?: number;  // Number of records per page (default: 10)
-  user_id?:number
+  user_id?: number
 }
 export interface PaginationConversationOptions {
   page?: number;      // 1-based page index (default: 1)

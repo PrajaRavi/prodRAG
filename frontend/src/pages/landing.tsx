@@ -26,7 +26,7 @@ setAnalyzerPageVisible(false)
             <span className="text-blue-400"> documents</span>
           </h1>
 
-          <p className="mt-6 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
+          <p className="mt-6  max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
             Upload your knowledge, retrieve relevant information and
             interact with your documents through an intelligent RAG
             pipeline.

@@ -534,6 +534,7 @@ def delete_conversation_documents(
             "Unexpected error while deleting conversation documents."
         ) from exc
 
+
 def delete_conversation_documents_by_user_id(
     user_id: str
 ) -> None:
@@ -559,3 +560,5 @@ def delete_conversation_documents_by_user_id(
         raise RuntimeError(
             "Unexpected error while deleting conversation documents."
         ) from exc
+
+

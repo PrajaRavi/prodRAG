@@ -11,37 +11,37 @@ export default function MarkdownRenderer({ content }: Props) {
       remarkPlugins={[remarkGfm]}
       components={{
         h1: ({ children }) => (
-          <h1 className="mb-2 mt-4 text-3xl font-bold">{children}</h1>
+          <h1 className="mb-2 mt-4 md:sofia-regular sofia-regular-2 text-3xl font-bold">{children}</h1>
         ),
 
         h2: ({ children }) => (
-          <h2 className="mb-2 mt-3 text-2xl font-semibold">{children}</h2>
+          <h2 className="mb-2 mt-3 text-2xl md:sofia-regular sofia-regular-2 font-semibold">{children}</h2>
         ),
 
         h3: ({ children }) => (
-          <h3 className="mb-1 mt-2 text-xl font-semibold">{children}</h3>
+          <h3 className="mb-1 mt-2 text-xl md:sofia-regular sofia-regular-2 font-semibold">{children}</h3>
         ),
 
         p: ({ children }) => (
-          <p className="mb-2 leading-7 text-white">{children}</p>
+          <p className="mb-2 leading-7 md:sofia-regular sofia-regular-2 text-white">{children}</p>
         ),
 
         // List wrappers
         ul: ({ children }) => (
-          <ul className="mb-4 list-disc pl-6 space-y-1 text-white">
+          <ul className="mb-4 list-disc md:sofia-regular sofia-regular-2 pl-6 space-y-1 text-white">
             {children}
           </ul>
         ),
 
         ol: ({ children }) => (
-          <ol className="mb-4 list-decimal pl-6 space-y-1 text-white">
+          <ol className="mb-4 list-decimal md:sofia-regular sofia-regular-2 pl-6 space-y-1 text-white">
             {children}
           </ol>
         ),
 
         // Custom list item rendering
         li: ({ children }) => (
-          <li className="leading-6">{children}</li>
+          <li className="leading-6 sofia-regular">{children}</li>
         ),
 
         blockquote: ({ children }) => (
@@ -62,7 +62,7 @@ export default function MarkdownRenderer({ content }: Props) {
           return (
             <code
               {...props}
-              className="rounded-md bg-transparent px-1.5 py-0.5 text-white font-mono text-sm"
+              className="rounded-md bg-transparent  px-1.5 py-0.5 text-white font-mono text-sm"
             >
               {children}
             </code>

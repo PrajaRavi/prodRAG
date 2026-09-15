@@ -1,6 +1,6 @@
 import {
   KeyRound,
-  Database,
+  // Database,
   Sparkles,
   Brain,
   Settings2,
@@ -40,12 +40,12 @@ const steps = [
 ];
 
 const services = [
-  {
-    name: "Pinecone",
-    description: "Vector database",
-    icon: Database,
-    url: "https://app.pinecone.io/",
-  },
+  // {
+  //   name: "Pinecone",
+  //   description: "Vector database",
+  //   icon: Database,
+  //   url: "https://app.pinecone.io/",
+  // },
   {
     name: "Gemini",
     description: "Embeddings & AI",
@@ -94,11 +94,11 @@ export default function ApiKeyOnboarding({
             </h2>
 
             <span className="text-xs text-slate-500">
-              3 services
+              2 services
             </span>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {services.map((service) => {
               const Icon = service.icon;
 
