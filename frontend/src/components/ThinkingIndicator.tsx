@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export default function TypingIndicator({text="Thinking..."}:{text:string}) {
   return (
-        <div className="rounded-2xl sofia-regular flex flex-row gap-2 rounded-bl-md mt-2 bg-transparent">
+        <div className="rounded-2xl  flex flex-row gap-2 rounded-bl-md mt-2 bg-transparent">
           <div className="flex items-center gap-2">
             {[0, 1, 2].map((i) => (
               <motion.div
