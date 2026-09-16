@@ -18,7 +18,7 @@ import type {
   ImageKitUploadResponse,
 } from "../types";
 
-import { FASTAPI_BASE_URL, IMAGEKIT_PUBLIC_KEY, IMAGEKIT_UPLOAD_ENDPOINT, localUsre } from "../utils/const";
+import { DeepThinkingMode, FASTAPI_BASE_URL, IMAGEKIT_PUBLIC_KEY, IMAGEKIT_UPLOAD_ENDPOINT, localUsre } from "../utils/const";
 import { useUser } from "../context/Global";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
@@ -297,7 +297,8 @@ const response = await fetch(
       user_id: String(user.id),
       conversation_id:String(ActiveConversation.id),
       api_configured:user.api_configured?"true":"false",
-      email:user?.email
+      email:user?.email,
+      deep_think:localStorage.getItem(DeepThinkingMode)?"true":"false"
       
     }),
   }
@@ -610,6 +611,7 @@ const UpdateUserCount=async (email:string,newCount:number)=>{
       alert("Only .pdf and .txt files are supported.");
       return;
     }
+    
 
     // Validate MIME type if available
     if (

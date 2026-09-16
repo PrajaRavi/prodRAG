@@ -13,6 +13,9 @@ export interface UserContextType {
   // AnalyzerPageVisible,setAnalyzerPageVisible
   AnalyzerPageVisible:boolean;
   setAnalyzerPageVisible:Dispatch<SetStateAction<boolean>>;
+  
+  DocumentModelOpen:boolean;
+  setDocumentModelOpen:Dispatch<SetStateAction<boolean>>;
   ConversationHistory:Conversation[];
   setConversationHistory:Dispatch<SetStateAction<Conversation[]>>;
   ActiveConversation:Conversation;

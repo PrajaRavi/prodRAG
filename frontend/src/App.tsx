@@ -22,6 +22,8 @@ function App() {
   let [ConversationHistory,setConversationHistory]=useState<Conversation[]>([])
   let [ActiveConversation,setActiveConversation]=useState<Conversation>({id:"",doc_name:""})
   let [ConversationHistorySignal,setConversationHistorySignal]=useState<boolean>(false)
+  let [DocumentModelOpen,setDocumentModelOpen]=useState<boolean>(false)
+  
   let [ConversationHistoryPagination,setConversationHistoryPagination]=useState<PaginationConversationOptions>({page:1,total_page:1})
   
   
@@ -129,7 +131,7 @@ if(localStorage.getItem(localUsre) && user.id!=0){
 }
   },[user])
   return (
-    <UserContext.Provider value={{IsLogin,setIsLogin,user,setuser,GetUserSignal,setGetUserSignal,AnalyzerPageVisible,setAnalyzerPageVisible,ConversationHistory,setConversationHistory,ActiveConversation,setActiveConversation}}>
+    <UserContext.Provider value={{IsLogin,setIsLogin,user,setuser,GetUserSignal,setGetUserSignal,AnalyzerPageVisible,setAnalyzerPageVisible,ConversationHistory,setConversationHistory,ActiveConversation,setActiveConversation,DocumentModelOpen,setDocumentModelOpen}}>
 
     <BrowserRouter>
     {AnalyzerPageVisible==false && <Navbar />}

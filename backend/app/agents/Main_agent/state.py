@@ -15,5 +15,6 @@ class AgentState(TypedDict):
     context:str
     final_response:str
     user_id:str
+    deep_think:str
     email:str
     conversation_id:str

@@ -1,10 +1,15 @@
 # https://ik.imagekit.io/k5imwrh1hh/rag_documents/TruthLens_AI_Technical_Report_-4Nhw845Y.pdf
+"""
+NEW MODULES
+!pip install rank_bm25
+"""
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.prompts import PromptTemplate
 from fastapi.responses import StreamingResponse
 from imagekitio import ImageKit
 from DB.database import db
+
 from app.Ingestion.vectorstore.pinecone_service import delete_conversation_documents,delete_conversation_documents_by_user_id
 from app.agents.Main_agent.graph import create_graph
 from utils.utils import validate_document_url,encrypt_api_key,decrypt_api_key,test_gemini_api_key,test_groq_api_key,test_pinecone_api_key,llm_cache
@@ -49,6 +54,7 @@ class ChatRequest(BaseModel):
     user_id:str
     email:str
     api_configured:str
+    deep_think:str
     # thread_id: str
 
 
@@ -166,10 +172,12 @@ async def chat(body:ChatRequest,request:Request):
 
         async def event_generator(data):
             print("-------------------started api------------------------")
-            print(data.conversation_id,data.user_id)
+            # print(data)
+
+            # return
 
             async for event in chatbot.astream_events(
-                {"messages":[HumanMessage(body.query)],"query":data.query,"final_response":"nothing","conversation_id":data.conversation_id,"user_id":data.user_id,"api_configured":data.api_configured,"email":data.email},
+                {"messages":[HumanMessage(body.query)],"query":data.query,"final_response":"nothing","conversation_id":data.conversation_id,"user_id":data.user_id,"api_configured":data.api_configured,"email":data.email,"deep_think":data.deep_think},
                 config={
                     "configurable": {
                         "thread_id": body.conversation_id

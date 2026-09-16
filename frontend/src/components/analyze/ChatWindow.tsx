@@ -17,6 +17,8 @@ import { useUser } from "../../context/Global";
 import { toast } from "react-toastify";
 // import ApiKeyOnboarding from "../../pages/ApiKeyOnBoarding";
 import ChatList from "../ui/ChatList";
+import DocumentUploadModal from "../ui/Model";
+import { DeepThinkingMode } from "../../utils/const";
 
 interface Props {
   messages: ChatHistory[];
@@ -35,6 +37,7 @@ export default function ChatWindow({
 }: Props) {  
   const [input, setInput] = useState("");
   const messagesContainerRef = useRef<HTMLDivElement|null>(null);
+  let [DocumentModelOpen,setDocumentModelOpen]=useState<boolean>(false)
   
   
 const {ActiveConversation,user}=useUser()
@@ -100,6 +103,21 @@ const {ActiveConversation,user}=useUser()
   return (
     <>
     <main className="flex min-w-0 h-screen  flex-1 flex-col bg-slate-900/40">
+    <DocumentUploadModal isOpen={DocumentModelOpen} onClose={()=>setDocumentModelOpen(false)} onDeepThinkingOff={()=>{
+      localStorage.removeItem(DeepThinkingMode)
+    }} onDeepThinkingOn={()=>{
+      localStorage.setItem(DeepThinkingMode,"true")
+
+    }} onFileSelect={(file:File)=>{
+      console.log(file)
+      if (!file) return;
+      setDocumentModelOpen(false)
+      onDocumentUpload(file);
+
+    }}/>
+
+
+
       {/* Header */}
       <header className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-4 sm:px-6">
         <button
@@ -122,6 +140,10 @@ const {ActiveConversation,user}=useUser()
             RAG powered conversation
           </p>
         </Link>
+        <div className="absolute right-0">
+
+        {/* <DeepThinkToggle enabled={true} onChange={()=>{}} /> */}
+        </div>
       </header>
 
       {/* Messages */}
@@ -132,7 +154,7 @@ const {ActiveConversation,user}=useUser()
       {/* Composer */}
       <div className="shrink-0 border-t border-white/10 bg-slate-950/60 p-3 backdrop-blur-xl sm:p-5">
        {(Number(user.count)<2 || String(user.api_configured)=="true") && <div className="mx-auto flex max-w-4xl items-end gap-2 rounded-2xl border border-white/10 bg-white/4 p-2">
-        <input
+        {/* <input
   id="document-upload"
   type="file"
   accept=".pdf,.txt,application/pdf,text/plain"
@@ -147,14 +169,15 @@ const {ActiveConversation,user}=useUser()
     // Allows selecting the same file again later
     e.target.value = "";
   }}
-/>
-<label
-  htmlFor="document-upload"
+/> */}
+
+<button
+onClick={()=>setDocumentModelOpen(true)}
   className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition hover:bg-white/5 hover:text-white"
   title="Upload document"
 >
   <Plus size={20} />
-</label>
+</button>
           <input
             value={input}
             onChange={(e) => {

@@ -5,6 +5,17 @@ from dotenv import load_dotenv
 from langchain_core.documents import Document
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
+from langchain_community.document_compressors import FlashrankRerank
+# from langchain_core.retrievers import ContextualCompressionRetriever
+from langchain_classic.retrievers import ContextualCompressionRetriever
+from langchain_core.documents import Document
+from langchain_community.document_transformers import (
+    # EmbeddingsClusteringFilter,
+    EmbeddingsRedundantFilter,
+    LongContextReorder
+)
+
+from langchain_classic.retrievers.document_compressors import DocumentCompressorPipeline
 
 from app.config import llms, settings
 
@@ -458,6 +469,40 @@ async def similarity_search_with_score(
 
 
 from langchain_core.documents import Document
+
+
+async def Contextual_compression_reorder_filter_metadata_flashRank(
+    query: str,
+    user_id: str,
+    conversation_id: str,
+    k: int = 5,
+) -> list[Document]:
+    try:
+        metadata_filter={
+            "user_id":{"$eq":user_id},
+            "conversation_id":{"$eq":conversation_id}
+
+        }
+        vector_store=get_vector_store()
+        base_retriever=vector_store.as_retriever(search_type="mmr",search_kwargs={
+            "k":5,
+            "filter":metadata_filter
+        })
+        # Initialize FlashRank compressor (LangChain handles the dict conversion)
+        compressor = FlashrankRerank(model="ms-marco-TinyBERT-L-2-v2")
+                # Your standard LangChain Documents with metadata
+        filter = EmbeddingsRedundantFilter(embeddings=llms.embeddings)
+        reordering = LongContextReorder()
+        pipeline = DocumentCompressorPipeline(transformers=[filter, reordering])
+        compression_retriever_reordered = ContextualCompressionRetriever(base_compressor=pipeline, base_retriever=base_retriever,search_kwargs={"k": 5, "include_metadata": True})
+        docs=compression_retriever_reordered.invoke(query)
+        reranked_docs = compressor.compress_documents(documents=docs, query=query)
+        return reranked_docs
+    except Exception as e:
+        print(str(e))
+        raise Exception(f"something went wrong in Contextual_compression_reorder_filter_metadata_flashRank {str(e)}")
+    
+
 
 
 async def similarity_search_by_filter_metadata(
