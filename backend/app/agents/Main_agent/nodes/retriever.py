@@ -4,6 +4,7 @@ from langchain_core.messages import BaseMessage
 from app.agents.Main_agent.state import AgentState
 from app.Ingestion.vectorstore.pinecone_service import similarity_search_by_filter_metadata,Contextual_compression_reorder_filter_metadata_flashRank
 from utils.utils import format_docs
+from langchain_core.documents import Document
 from app.config import llms
 # from langchain_classic.retrievers import ContextualCompressionRetriever
 
@@ -63,7 +64,7 @@ async def retriever_node(state: AgentState) -> AgentState:
     # ---------------------------------------------------------
     try:
         context = format_docs(data)
-
+        
     except Exception as exc:
         raise RuntimeError(
             "Failed to format retrieved documents."
@@ -73,7 +74,8 @@ async def retriever_node(state: AgentState) -> AgentState:
     # 5. Return context
     # ---------------------------------------------------------
     return {
-        "context": context
+        "context": context,
+        "retrieved_chunks":data
         
     }
 

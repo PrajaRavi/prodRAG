@@ -172,10 +172,7 @@ async def chat(body:ChatRequest,request:Request):
 
         async def event_generator(data):
             print("-------------------started api------------------------")
-            # print(data)
-
-            # return
-
+            
             async for event in chatbot.astream_events(
                 {"messages":[HumanMessage(body.query)],"query":data.query,"final_response":"nothing","conversation_id":data.conversation_id,"user_id":data.user_id,"api_configured":data.api_configured,"email":data.email,"deep_think":data.deep_think},
                 config={
@@ -184,9 +181,9 @@ async def chat(body:ChatRequest,request:Request):
                     }
                 },
                 version="v2"
-            ):
+            ):  
+            
                 try:
-                    
                     if event["event"] == "on_tool_start":
 
                         yield sse_event(
@@ -202,7 +199,19 @@ async def chat(body:ChatRequest,request:Request):
                                 "on_parser_end",
                                 event['data']['output'].msg
                             )
+                    elif event["event"] == "on_chain_end" :
+                        # here finally the decesion node makes the final decesion
+                        # and event['data']['output']['messages']
+                        if('messages' in event['data']['output'] and 'is_rag_query' in event['data']['output'] and event['data']['output']['is_rag_query']=="true"):
 
+                            chunks=event['data']['output']['retrieved_chunks']
+                            data=[{"page_content":doc.page_content,"metadata":doc.metadata} for doc in chunks]
+                            yield  sse_event(
+                            "retrieved_chunks",
+                            data
+                        )
+                            
+                        #output['messages']->sabse end wala hai    
                     elif (
                         event["event"] == "on_chat_model_stream"
                         and event["data"]["chunk"].content

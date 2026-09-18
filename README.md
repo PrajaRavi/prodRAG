@@ -1,3 +1,33 @@
+> citations future updates->regenrate,simplify,shorter,improve
+
+> document intelligance
+```
+
+                    ProdRAG
+                       │
+        ┌──────────────┼──────────────┐
+        ↓              ↓              ↓
+   Core RAG        UX/Product      Production
+        │              │              │
+        ├─ Streaming   ├─ Citations   ├─ Rate limiting
+        ├─ Hybrid      ├─ Regenerate  ├─ Caching
+        ├─ Reranking   ├─ Doc mgmt    ├─ Circuit breaker
+        ├─ Rewriting   ├─ Comparison  ├─ Observability
+        └─ Multi-query └─ Suggestions └─ Evaluation
+                       │
+                       ↓
+                  Deep Think
+                       │
+            ┌──────────┴──────────┐
+            ↓                     ↓
+       Normal RAG           Deep RAG
+                             ├─ Planning
+                             ├─ Multi retrieval
+                             ├─ Evidence
+                             └─ Synthesis
+
+```
+
 
 ```
 ProductionRAGFromScratch

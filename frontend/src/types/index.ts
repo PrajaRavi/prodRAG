@@ -4,10 +4,22 @@ export interface Conversation {
   user_id?: string
 }
 
+interface metadata{
+  source:string;
+  title:string;
+  page_label:string;
+  conversation_id:string;
+
+}
+export interface Doc{
+  page_content:string;
+  metadata:metadata;
+}
 export interface ChatHistory {
   id: string;
   content: string;
   role: "user" | "assistant";
+  source?:Doc[]
 }
 
 export interface ApiKeys {

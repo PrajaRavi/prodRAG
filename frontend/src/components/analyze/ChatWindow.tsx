@@ -40,6 +40,7 @@ export default function ChatWindow({
   let [DocumentModelOpen,setDocumentModelOpen]=useState<boolean>(false)
   
   
+  
 const {ActiveConversation,user}=useUser()
   const handleSend = () => {
     if(ActiveConversation.id==""){
@@ -133,7 +134,7 @@ const {ActiveConversation,user}=useUser()
 
         <Link to={"/"}>
           <h1 className="text-sm font-semibold text-white">
-            Document Assistant
+            {ActiveConversation.doc_name}
           </h1>
 
           <p className="text-xs text-slate-600">

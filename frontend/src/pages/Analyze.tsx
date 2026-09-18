@@ -273,7 +273,9 @@ try {
       id:id,
       role: "assistant",
       content:"",
+      source:[]
     };
+
     setMessages((previous) => [
       ...previous,
       assistantMessage,
@@ -354,10 +356,10 @@ while (true) {
       continue;
     }
 
-    console.log(
-      "RAW SSE EVENT:",
-      rawEvent
-    );
+    // console.log(
+    //   "RAW SSE EVENT:",
+    //   rawEvent
+    // );
 
     const lines =
       rawEvent.split(/\r?\n/);
@@ -368,8 +370,8 @@ while (true) {
     let data = "";
 
     for (const line of lines) {
-      console.log(line)
-      console.log("line")
+      // console.log(line)
+      // console.log("line")
 
       if (line.startsWith("event:")) {
 
@@ -468,14 +470,43 @@ while (true) {
 
     if (
       eventType ===
-      "on_tool_end"
+      "on_chain_end"
     ) {
 
-      // dispatch(
-      //   SetThinkingText(
-      //     "Orchestrating..."
-      //   )
-      // );
+      console.log("retrieved chunks")
+      console.log(parsedData)
+      console.log("retrieved chunks ended")
+      continue;
+    }
+    if (
+      eventType ===
+      "retrieved_chunks"
+    ) {
+      // console.log("retrieved_chunks")
+      // console.log(parsedData)
+      setMessages(prev => {
+
+        const updated =
+          [...prev];
+
+        const last =
+          updated.length - 1;
+
+        if (last < 0) {
+          return prev;
+        }
+
+        updated[last] = {
+
+          ...updated[last],
+
+          source:
+            updated[last]
+              .source=parsedData
+        };
+
+        return updated;
+      });
 
       continue;
     }
