@@ -32,7 +32,7 @@ async def genrator(state: AgentState) -> AgentState:
     
     else:
         # global GEMINI_LLM_genrator
-        GEMINI_LLM_genrator = llms.PRIMARY_GEMINI_LLM
+        GEMINI_LLM_genrator = llms.PRIMARY_GROQ_LLM
     
     prompt = RAG_SYSTEM_PROMPT.format(context=context)
 

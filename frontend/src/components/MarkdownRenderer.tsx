@@ -11,15 +11,15 @@ export default function MarkdownRenderer({ content }: Props) {
       remarkPlugins={[remarkGfm]}
       components={{
         h1: ({ children }) => (
-          <h1 className="mb-2 mt-4 md:sofia-regular sofia-regular-2 text-3xl font-bold">{children}</h1>
+          <h1 className="md:mb-2 mb-1 md:mt-4 mt-1 md:sofia-regular sofia-regular-2 md:text-3xl text-xl font-bold">{children}</h1>
         ),
 
         h2: ({ children }) => (
-          <h2 className="mb-2 mt-3 text-2xl md:sofia-regular sofia-regular-2 font-semibold">{children}</h2>
+          <h2 className="md:mb-2 mb-1 md:mt-3 mt-1 md:text-2xl text-xl md:sofia-regular sofia-regular-2 font-semibold">{children}</h2>
         ),
 
         h3: ({ children }) => (
-          <h3 className="mb-1 mt-2 text-xl md:sofia-regular sofia-regular-2 font-semibold">{children}</h3>
+          <h3 className="mb-1 mt-2 text-xl  md:sofia-regular sofia-regular-2 font-semibold">{children}</h3>
         ),
 
         p: ({ children }) => (
