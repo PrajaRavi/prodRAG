@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "query": "What is Ravi Prajapati's professional title and primary focus?",
+    "ideal_answer": "Ravi Prajapati works as a Full Stack AI Developer who specializes in RAG (Retrieval-Augmented Generation) and Agentic AI workflows[cite: 1]. His expertise lies in building stateful agentic workflows and intelligent full-stack platforms using technologies such as React, Node.js, Express, MongoDB, Python, FastAPI, LangChain, and LangGraph[cite: 1].",
+    "source": "doc1"
+  },
+  {
+    "id": 2,
+    "query": "What programming languages does Ravi list under his technical skills?",
+    "ideal_answer": "Under his programming and querying technical skills, Ravi lists JavaScript (JS), Python, and C++[cite: 1]. These languages form the foundation of his backend, frontend, and algorithmic development across his various projects[cite: 1].",
+    "source": "doc1"
+  },
+  {
+    "id": 3,
+    "query": "Which technologies were utilized to build the Full-Stack Music Streaming Platform (Spotify Clone)?",
+    "ideal_answer": "The Full-Stack Music Streaming Platform was engineered using a microservices architecture with React.js for the frontend, and Node.js/Express.js for the backend microservices running on different ports[cite: 1]. MongoDB was used for data modeling (users, songs, playlists, favourites), Docker for containerization, and ImageKit.io for scalable music file uploads, storage, and delivery, supported by GitHub Actions for CI/CD[cite: 1].",
+    "source": "doc1"
+  },
+  {
+    "id": 4,
+    "query": "What stack was used for the Production RAG System project?",
+    "ideal_answer": "The Production RAG System was developed using FastAPI, LangGraph, Pinecone, PostgreSQL, React, and Docker[cite: 1]. It features stateful, conversation-aware AI workflows, asynchronous ingestion for PDFs and TXTs, chunking, embeddings, metadata-based tenant isolation using user_id and conversation_id, and monitoring through LangSmith and Logfire[cite: 1].",
+    "source": "doc1"
+  },
+  {
+    "id": 5,
+    "query": "What is TruthLensAI designed to analyze?",
+    "ideal_answer": "TruthLensAI is a multimodal misinformation-analysis platform designed to analyze text, images, webpages, and YouTube content[cite: 1]. It uses a LangGraph-based agentic pipeline for claim extraction, parallel multi-source evidence retrieval, and evidence-based claim assessment to verify factual claims[cite: 1].",
+    "source": "doc1"
+  },
+  {
+    "id": 6,
+    "query": "Where is Ravi pursuing his B.Sc. in Computer Science and what is his expected graduation year?",
+    "ideal_answer": "Ravi is pursuing his Bachelor of Science (B.Sc.) in Computer Science at BK Birla College of Arts, Commerce and Science[cite: 1]. His studies are ongoing with an expected graduation year of 2028[cite: 1].",
+    "source": "doc1"
+  },
+  {
+    "id": 7,
+    "query": "Which company did Ravi intern at as a Full Stack Developer?",
+    "ideal_answer": "Ravi completed a Full Stack Developer Internship at RAPS Powerplay (accessible via rapspowerplay.com) between September 2025 and November 2025[cite: 2]. During this time, he was responsible for designing, developing, and maintaining the company website[cite: 2].",
+    "source": "doc1"
+  },
+  {
+    "id": 8,
+    "query": "What backend and frontend tools did Ravi use during his internship at RAPS Powerplay?",
+    "ideal_answer": "During his internship, Ravi built RESTful APIs using Node.js and Express.js, integrating secure user authentication via JWT and full CRUD operations for blog posts[cite: 2]. For the frontend, he utilized React, React Router, and Tailwind CSS with functional components and hooks, alongside Multer for file uploads and markdown rendering[cite: 2].",
+    "source": "doc1"
+  },
+  {
+    "id": 9,
+    "query": "What is the primary objective of TruthLens AI?",
+    "ideal_answer": "The primary objective of TruthLens AI is to combat digital deception, fake news, and manipulated content across modern digital media ecosystems[cite: 3]. It bridges the trust gap by providing an automated tool that goes beyond simple 'true' or 'false' labels to offer context, authoritative source citations, and visual explanations of content manipulation[cite: 3].",
+    "source": "doc2"
+  },
+  {
+    "id": 10,
+    "query": "What cross-domain formats does TruthLens AI process for multimodal analysis?",
+    "ideal_answer": "TruthLens AI processes multiple cross-domain formats through its multimodal analysis engine, including text articles, social media posts, image text via OCR, and audio/video transcripts[cite: 4]. These inputs are evaluated to extract claim logs and analyze audio/video keyframes for factual verification[cite: 4].",
+    "source": "doc2"
+  },
+  {
+    "id": 11,
+    "query": "What is the function of the TruthLens AI Explainability Engine?",
+    "ideal_answer": "The Explainability Engine is designed to provide transparent reasoning behind factual assessments[cite: 3, 4]. It highlights manipulated sentences or altered regions within media and generates detailed reasoning logs, presenting a color-coded breakdown equipped with line-by-line flags[cite: 4].",
+    "source": "doc2"
+  },
+  {
+    "id": 12,
+    "query": "Which database is used in TruthLens AI for in-memory query acceleration caching?",
+    "ideal_answer": "Redis is implemented within the TruthLens AI data structures stack specifically to serve as an in-memory caching layer for query acceleration, helping maintain low-latency processing speeds[cite: 5].",
+    "source": "doc2"
+  },
+  {
+    "id": 13,
+    "query": "What are some practical applications listed for TruthLens AI?",
+    "ideal_answer": "TruthLens AI lists several practical applications across industries, including journalism and newsrooms (assisting with rapid background verification during breaking news), social media moderation (automating the pre-flagging of viral claims), corporate brand protection (monitoring synthetic media and brand impersonation), and academic/civic research (providing datasets and auditing frameworks for information diffusion studies)[cite: 5].",
+    "source": "doc2"
+  },
+  {
+    "id": 14,
+    "query": "Which cloud and media CDN platform is used in TruthLens AI for media asset hosting and streaming?",
+    "ideal_answer": "ImageKit is utilized as the primary cloud and media CDN platform within the TruthLens AI architecture[cite: 5]. It is responsible for handling media asset hosting, streaming, and providing the infrastructure for video walkthroughs and demonstrations[cite: 3, 5].",
+    "source": "doc2"
+  },
+  {
+    "id": 15,
+    "query": "What hackathons or competitions has Ravi participated in?",
+    "ideal_answer": "Ravi has participated in an Ideation Competition at an inter-college technical event, where he presented and developed an innovative solution concept[cite: 2]. Additionally, he participated in the Smart India Hackathon (SIH), collaborating with peers on a technology-driven solution aimed at addressing real-world problems[cite: 2].",
+    "source": "doc1"
+  }
+]

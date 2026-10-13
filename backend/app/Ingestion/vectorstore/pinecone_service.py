@@ -15,6 +15,7 @@ from langchain_community.document_transformers import (
     LongContextReorder
 )
 
+
 from langchain_classic.retrievers.document_compressors import DocumentCompressorPipeline
 
 from app.config import llms, settings
@@ -68,7 +69,8 @@ PINECONE_INDEX_NAME = settings.PINECONE_INDEX
 
 PINECONE_NAMESPACE = os.getenv(
     "PINECONE_NAMESPACE",
-    "prodRAG",
+    # "evaltest",
+    "Myevaltest",
 )
 
 
@@ -471,6 +473,7 @@ async def similarity_search_with_score(
 from langchain_core.documents import Document
 
 
+# waste no use
 async def Contextual_compression_reorder_filter_metadata_flashRank(
     query: str,
     user_id: str,
@@ -484,9 +487,33 @@ async def Contextual_compression_reorder_filter_metadata_flashRank(
 
         }
         vector_store=get_vector_store()
-        base_retriever=vector_store.as_retriever(search_type="mmr",search_kwargs={
+        base_retriever=vector_store.as_retriever(search_kwargs={
             "k":5,
             "filter":metadata_filter
+        })
+        # Initialize FlashRank compressor (LangChain handles the dict conversion)
+        compressor = FlashrankRerank(model="ms-marco-TinyBERT-L-2-v2")
+                # Your standard LangChain Documents with metadata
+        filter = EmbeddingsRedundantFilter(embeddings=llms.embeddings)
+        reordering = LongContextReorder()
+        pipeline = DocumentCompressorPipeline(transformers=[filter, reordering])
+        compression_retriever_reordered = ContextualCompressionRetriever(base_compressor=pipeline, base_retriever=base_retriever,search_kwargs={"k": 5, "include_metadata": True})
+        docs=compression_retriever_reordered.invoke(query)
+        reranked_docs = compressor.compress_documents(documents=docs, query=query)
+        return reranked_docs
+    except Exception as e:
+        print(str(e))
+        raise Exception(f"something went wrong in Contextual_compression_reorder_filter_metadata_flashRank {str(e)}")
+    
+async def Contextual_compression_reorder_filter_metadata_flashRank_eval(
+    query: str,
+    k: int = 5,
+) -> list[Document]:
+    try:
+        
+        vector_store=get_vector_store()
+        base_retriever=vector_store.as_retriever(search_type="mmr",search_kwargs={
+            "k":5,
         })
         # Initialize FlashRank compressor (LangChain handles the dict conversion)
         compressor = FlashrankRerank(model="ms-marco-TinyBERT-L-2-v2")
