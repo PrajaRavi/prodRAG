@@ -9,6 +9,5 @@
 #   print("="*100)
   
     
-mylist=[1,2,3]
-mylist.append()
-print(mylist)
+mydict={"ravi":1,"surname":3}
+print(mydict.get("ravi"))

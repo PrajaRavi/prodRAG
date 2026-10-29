@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BrainCircuit, ArrowRight } from "lucide-react";
+import { BrainCircuit, ArrowRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {toast} from "react-toastify"
 import Input from "../components/ui/Input";
@@ -14,8 +14,11 @@ export default function Login() {
   const [password, setpassword] = useState("");
   const {setIsLogin}=useUser()
   const [email, setEmail] = useState("");
-
+let [Flag,setFlag]=useState(false)
+  
   const handleLogin = async (e:any) => {
+    try{
+setFlag(true)
     e.preventDefault();
     if (!password.trim() || !email.trim()) return;
 
@@ -50,7 +53,13 @@ else{
     
   }
   console.log(error)//->null-->null
-  
+    }
+  catch(err){
+    console.log(err)
+  }
+  finally{
+    setFlag(false)
+  }
   
   };
 
@@ -103,7 +112,8 @@ else{
             disabled={!password.trim() || !email.trim()}
             className="w-full gap-2 bg-blue-600 text-white hover:bg-blue-500"
           >
-            Continue
+                {Flag?<Loader2 className="h-4 w-4 animate-spin" aria-hidden/>:"Continue"}
+
             <ArrowRight size={17} />
           </Button>
         </form>

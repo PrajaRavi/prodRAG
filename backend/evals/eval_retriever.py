@@ -17,7 +17,7 @@ from evals.harness import load_goldens, summarize_by_metric, print_summary
 load_dotenv()
 groq_api_key=os.getenv("GROQ_FALLBACK_API_KEY")
 
-GOLDEN_PATH = r"D:\ProductionRAGFromScratch\backend\Golden_data\retriever_golden.json"
+GOLDEN_PATH = r"D:\ProductionRAGFromScratch\backend\goldens\retriever_goldens.json"
 
 JUDGE_MODEL =  PortkeyGatewayJudge()  # NOTE: differs from the other evals (gpt-4o-mini)
 THRESHOLD = 0.7

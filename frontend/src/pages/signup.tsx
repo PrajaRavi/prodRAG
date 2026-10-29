@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BrainCircuit, ArrowRight } from "lucide-react";
+import { BrainCircuit, ArrowRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {toast} from "react-toastify"
 import Input from "../components/ui/Input";
@@ -15,11 +15,15 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const {setIsLogin}=useUser()
+  let [Flag,setFlag]=useState(false)
   let [password,setpassword]=useState("")
 
   const handleLogin = async (e:any) => {
-    e.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+    try{
+      setFlag(true)
+
+      e.preventDefault();
+      if (!name.trim() || !email.trim()) return;
 
   
     let {data,error}=await supabase.from("users").insert({name:name,email:email,password:password})
@@ -35,7 +39,7 @@ export default function Signup() {
           
           toast.error(error?.message)
         }
-  
+        
       }
       else{
         navigate("/analyze");
@@ -48,7 +52,13 @@ export default function Signup() {
         setEmail("")
         setpassword("")
         
-      
+        
+      }
+    }catch(err:any){
+console.log(err)
+    }
+    finally{
+setFlag(false)
     }
   
   };
@@ -114,7 +124,9 @@ export default function Signup() {
             disabled={!name.trim() || !email.trim()}
             className="w-full gap-2 bg-blue-600 text-white hover:bg-blue-500"
           >
-            Continue
+            
+            {Flag?<Loader2 className="h-4 w-4 animate-spin" aria-hidden/>:"Continue"}
+
             <ArrowRight size={17} />
           </Button>
         </form>

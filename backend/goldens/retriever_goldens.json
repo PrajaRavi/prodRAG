@@ -28,36 +28,5 @@
     "query": "why can't we just compare the generated sql query with the correct one character by character?",
     "ideal_answer": "Comparing the generated SQL query with the correct query character by character is not a good strategy, because a single result can be produced by multiple different queries. The query your data analyst wrote and the query the LLM generated to solve the same problem may be different textually, yet both are correct. So instead of matching the query strings, you run both queries on the database, get a result set\u2014a table\u2014from each, and compare the two tables. If both tables are the same, the generated query is considered correct.",
     "source": "Session 8"
-  },
-  {
-    "id": "g006",
-    "query": "if a model tops all the benchmarks, why wouldn't i just pick it for my project?",
-    "ideal_answer": "The model that tops the benchmarks isn't always the best choice for your specific task. In the Zomato email-routing example, model A was a big top-of-the-leaderboard model that beat the smaller, cheaper model B on every benchmark, so the obvious choice seemed to be model A. But when you build your own golden dataset for your actual task and run both models on it, the accuracy difference turns out to be small, while the smaller model is much cheaper and faster. So for that specific task the smaller, cheaper model is the better value, even though it is weaker overall. If you had relied only on benchmarks you would have chosen the bigger model\u2014it is the custom eval on your own data that reveals the cheaper model is better for your work.",
-    "source": "Session 5"
-  },
-  {
-    "id": "g007",
-    "query": "what are the different ways an eval can actually be run?",
-    "ideal_answer": "An evaluation pipeline can be executed in one of three ways, and the distinction is simply about who is carrying out the eval. The first is programmatic, also called deterministic\u2014a program or code executes the evaluation. The second is human\u2014a human carries out the eval. The third is model-graded, also called LLM-graded\u2014an LLM executes the evaluation. Any eval pipeline you build will be run by one of these three: a program, a human, or an LLM, and there's nothing beyond these three. For example, in the Zomato email-classification system, the accuracy was calculated through Python code, so that was a programmatic eval.",
-    "source": "Session 3"
-  },
-  {
-    "id": "g008",
-    "query": "can i just pick the top model from a leaderboard for my app?",
-    "ideal_answer": "No\u2014you generally don't select a single model directly from a leaderboard. Leaderboards are best used as a filtering tool: when you don't have the resources to run evals on hundreds of models yourself, you go to the relevant leaderboard (say the maths leaderboard if your app is in the maths domain), pick your top candidates, and shortlist from the hundred down to about five. Then you run your own evals on those shortlisted candidates and select the best one for your application from there. So a leaderboard filters 100 models down to a handful of candidates; your own evaluation on your own task picks the final model.",
-    "source": "Session 7"
-  },
-  {
-    "id": "g009",
-    "query": "where can a rag chatbot go wrong?",
-    "ideal_answer": "A RAG chatbot has two main failure points, corresponding to its two components: the retriever and the generator. The first failure is when the retriever fetches the wrong documents\u2014if it brings back wrong documents, the generator will produce wrong answers based on that wrong context. The second failure is when the retriever works properly but the generator ignores the retrieved context, hallucinates, and gives a wrong answer anyway. Both components need to work properly for the overall application to work.",
-    "source": "Session 3"
-  },
-  {
-    "id": "g010",
-    "query": "what exactly does recall at k tell me about my retriever?",
-    "ideal_answer": "Recall@k tells you, out of all the correct relevant documents that exist for a query, how many the retriever actually retrieved in its top-k results. For example, if there are two correct documents for a question and the retriever fetches only one of them, the recall is 1 out of 2, or 50%. Recall is always between 0 and 100%, and ideally should be 100%. To get the overall recall@k on your dataset, you compute recall per question and then average across all questions. This tells you how successful your retriever is at fetching the relevant documents.",
-    "source": "Session 3"
   }
-  
 ]
