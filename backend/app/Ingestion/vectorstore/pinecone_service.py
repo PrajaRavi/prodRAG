@@ -70,8 +70,9 @@ PINECONE_INDEX_NAME = settings.PINECONE_INDEX
 PINECONE_NAMESPACE = os.getenv(
     "PINECONE_NAMESPACE",
     # "evaltest",
-    "evalpipeline"
+    # "evalpipeline"
     # "Myevaltest",
+    "prodRAG"
 )
 
 

@@ -7,7 +7,9 @@
 #   print(data)
 #   print(len(data))
 #   print("="*100)
-  
-    
-mydict={"ravi":1,"surname":3}
-print(mydict.get("ravi"))
+import time
+ctime=time.time()
+for i in range(5):
+  print(i)
+  time.sleep(1)
+print("total time: ",time.time()-ctime)
