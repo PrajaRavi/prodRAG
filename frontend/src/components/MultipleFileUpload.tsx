@@ -11,6 +11,7 @@ interface FileUploadState {
   errorMessage?: string;
 }
 
+
 export function ChatGPTPromptBox() {
   const [uploads, setUploads] = useState<FileUploadState[]>([]);
   const [prompt, setPrompt] = useState('');

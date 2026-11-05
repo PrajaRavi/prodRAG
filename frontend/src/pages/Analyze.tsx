@@ -12,18 +12,18 @@ import ChatWindow from "../components/analyze/ChatWindow";
 import type {
   ApiKeys,
   ChatHistory,
-  Conversation,
-  ImageKitAuthResponse,
-  ImageKitUploadResponse,
+  // Conversation,
+  // ImageKitAuthResponse,
+  // ImageKitUploadResponse,
 } from "../types";
 
-import { DeepThinkingMode, FASTAPI_BASE_URL, IMAGEKIT_PUBLIC_KEY, IMAGEKIT_UPLOAD_ENDPOINT, localUsre } from "../utils/const";
+import { DeepThinkingMode, FASTAPI_BASE_URL,   localUsre } from "../utils/const";
 import { useUser } from "../context/Global";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
-import axios, { AxiosError } from "axios"
+import axios  from "axios"
 import { supabase } from "../utils/supabase";
-import ProcessingLoader from "../components/ui/processing_Loader";
+// import ProcessingLoader from "../components/ui/processing_Loader";
 
 interface Props {
   ConversationHistorySignal:boolean;
@@ -32,7 +32,7 @@ interface Props {
 
 export default function Analyze({ConversationHistorySignal,handleShowMoreConversationHistory}:Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const {ConversationHistory,setConversationHistory,setActiveConversation}=useUser()
+  const {ConversationHistory,setConversationHistory}=useUser()
   let [VectorDeleteSignal,setVectorDeleteSignal]=useState<boolean>(false)
   let [ConfigAPiKeySignal,setConfigAPiKeySignal]=useState<boolean>(false)
 
