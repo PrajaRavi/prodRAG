@@ -60,22 +60,7 @@ async def complete_Ingestion(file_path: str, max_size_mb: int = 10,user_id="ravi
     Global dispatcher function to inspect a file's extension and execute
     the appropriate loader while enforcing size and security safety checks.
     """
-    # 1. Path & Existence Checks #! the path is imagekit public url
-    # if not os.path.exists(file_path):
-    #     print(f"[Error] File does not exist: {file_path}")
-    #     return []
-
-    # if not os.path.isfile(file_path):
-    #     print(f"[Error] Provided path is a directory, not a file: {file_path}")
-    #     return []
-
-    # 2. File Size Validation (OOM Protection)
-    # max_bytes = max_size_mb * 1024 * 1024
-    # file_size = os.path.getsize(file_path)
-    # if file_size > max_bytes:
-    #     print(f"[Error] File size ({file_size} bytes) exceeds limit ({max_size_mb} MB): {file_path}")
-    #     return []
-
+    
     # 3. Extract File Extension
     ext=str(file_path).split(".")[-1]
     print(ext)
@@ -88,16 +73,7 @@ async def complete_Ingestion(file_path: str, max_size_mb: int = 10,user_id="ravi
     try:
         raw_docs = loader_func(file_path)
         
-        # 6. Post-processing: Remove NUL bytes and discard empty documents
-        # cleaned_docs = []
-        # for doc in raw_docs:
-        #     text = doc.page_content.replace("\x00", "").strip()
-        #     if text:
-        #         doc.page_content = text
-        #         # Enrich metadata with auto-detected loader metadata
-        #         doc.metadata["file_extension"] = ext
-        #         cleaned_docs.append(doc)
-
+        
         # return cleaned_docs
         #! now first chunk this data using RecursiveTextSplitting
         chunks=doc_chunking(600,raw_docs,user_id,conversation_id)
