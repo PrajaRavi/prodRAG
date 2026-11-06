@@ -369,7 +369,7 @@ async def rag_process_delete_file_pipeline(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Provided document URL is invalid, inaccessible, or unsupported.",
         )
-    loop = asyncio.get_running_loop()
+    # loop = asyncio.get_running_loop()
     # 3. Ingest document chunks into Pinecone vector store
     try:
         ingestion_result = await complete_Ingestion(path, 10, user_id, conversation_id)
