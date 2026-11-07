@@ -1,3 +1,26 @@
+
+```text
+
+Frontend (UI)               FastAPI Backend             Redis (Broker / PubSub)         Celery Worker Fleet
+     │                             │                              │                             │
+     │── 1. POST /documents/upload►│                              │                             │
+     │      (file_url, doc_id)     │── 2. chord(...) ────────────►│                             │
+     │                             │                              │── 3. Pull slices ──────────►│
+     │◄──4. HTTP 202 Accepted──────│                              │   (Run extraction, embed,   │
+     │      {job_id, doc_id}       │                              │    upsert to Pinecone)      │
+     │                             │                              │                             │
+     │── 5. Open WS / SSE ────────►│                              │                             │
+     │      /ws/notifications/{id} │◄── 6. Subscribe to channel ──│                             │
+     │                             │      "doc_events:{doc_id}"   │                             │
+     │                             │                              │                             │
+     │      [UI shows spinner]     │                              │◄── 7. chord callback fires ─│
+     │                             │                              │       (status: "READY")     │
+     │                             │◄── 8. PubSub Event Pushed ───│                             │
+     │◄── 9. Push "DOCUMENT_READY"─│                              │                             │
+     │                             │                              │                             │
+[UI unlocks chat interface]
+```
+
 # Engineering Guide: Building a Redis Pub/Sub System
 
 As software systems grow, services inevitably need to communicate in real time without becoming tightly coupled. In distributed architectures, **Publish/Subscribe (Pub/Sub)** is one of the foundational patterns for decoupling event producers from event consumers.

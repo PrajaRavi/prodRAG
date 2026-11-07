@@ -5,6 +5,7 @@ import {
   Send,
   Sparkles,
   Plus,
+  Loader2,
 } from "lucide-react";
 
 import type {
@@ -36,7 +37,7 @@ export interface FileUploadState {
   file: File;
   previewUrl?: string;
   progress: number;
-  status: 'uploading' | 'success' | 'error' | 'cancelled';
+  status: 'uploading' | 'processing' | 'success' | 'error' | 'cancelled';
   errorMessage?: string;
   conversationId?: string;
 }
@@ -58,6 +59,7 @@ export default function ChatWindow({
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const [uploads, setUploads] = useState<FileUploadState[]>([]);
   const abortControllers = useRef<Map<string, AbortController>>(new Map());
+  const eventSources = useRef<Map<string, EventSource>>(new Map());
 
   const {
     ActiveConversation,
@@ -78,6 +80,8 @@ export default function ChatWindow({
       });
       abortControllers.current.forEach((controller) => controller.abort());
       abortControllers.current.clear();
+      eventSources.current.forEach((es) => es.close());
+      eventSources.current.clear();
     };
   }, []);
 
@@ -241,10 +245,10 @@ export default function ChatWindow({
         }
       );
 
-      // Step D: Successfully set uploaded file details and process RAG pipeline
+      // Step D: Dispatch distributed Celery pipeline to FastAPI (returns HTTP 202 immediately)
       const docid = uuidv4();
 
-      const processing_RAG_pipeline = await axios.post(
+      const dispatchResponse = await axios.post(
         `${FASTAPI_BASE_URL}/api/RAG_process_delete_file_pipeline?file_id=${String(
           uploadResponse.data.fileId
         )}&path=${String(uploadResponse.data.url)}&signature=${String(
@@ -256,44 +260,93 @@ export default function ChatWindow({
         { signal: controller.signal }
       );
 
-      if (processing_RAG_pipeline?.data?.success) {
-        toast.success(`"${file.name}" analysed successfully! Now you can chat from your document.`);
-
-        const conversation_obj: Conversation = {
-          id: docid,
-          doc_name: uploadResponse.data.name,
-        };
-
-        const conversation_history_supabase_result =
-          await Add_conversation_history_in_supabase(
-            docid,
-            uploadResponse.data.name,
-            user?.id
-          );
-
-        if (conversation_history_supabase_result !== false) {
-          setConversationHistory((prev) => [...prev, conversation_obj]);
-          setActiveConversation(conversation_obj);
-
-          const result = await UpdateUserCount(user.email, Number(user?.count) + 1);
-          if (result) {
-            setuser?.((prev) => ({ ...prev, count: Number(prev.count || 0) + 1 }));
-          }
-        }
-
-        abortControllers.current.delete(id);
-        setUploads((prev) =>
-          prev.map((item) =>
-            item.id === id
-              ? { ...item, status: "success", progress: 100, conversationId: docid }
-              : item
-          )
-        );
-      } else {
-        throw new Error("Error during document RAG processing");
+      if (dispatchResponse.status !== 202 && !dispatchResponse.data?.success) {
+        throw new Error("Failed to dispatch document processing");
       }
+
+      // Step E: Update status to 'processing' and listen via Server-Sent Events (SSE)
+      setUploads((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? { ...item, status: "processing", progress: 100, conversationId: docid }
+            : item
+        )
+      );
+
+      const sseUrl = `${FASTAPI_BASE_URL}/api/documents/stream/${docid}`;
+      const es = new EventSource(sseUrl);
+      eventSources.current.set(id, es);
+
+      es.onmessage = async (sseEvent) => {
+        try {
+          const payload = JSON.parse(sseEvent.data);
+          const currentStatus = payload.status;
+
+          if (currentStatus === "READY" || currentStatus === "SUCCESS") {
+            es.close();
+            eventSources.current.delete(id);
+
+            toast.success(`"${file.name}" analysed successfully! Now you can chat from your document.`);
+
+            const conversation_obj: Conversation = {
+              id: docid,
+              doc_name: uploadResponse.data.name,
+            };
+
+            const conversation_history_supabase_result =
+              await Add_conversation_history_in_supabase(
+                docid,
+                uploadResponse.data.name,
+                user?.id
+              );
+
+            if (conversation_history_supabase_result !== false) {
+              setConversationHistory((prev) => [...prev, conversation_obj]);
+              setActiveConversation(conversation_obj);
+
+              const result = await UpdateUserCount(user.email, Number(user?.count) + 1);
+              if (result) {
+                setuser?.((prev) => ({ ...prev, count: Number(prev.count || 0) + 1 }));
+              }
+            }
+
+            abortControllers.current.delete(id);
+            setUploads((prev) =>
+              prev.map((item) =>
+                item.id === id
+                  ? { ...item, status: "success", progress: 100, conversationId: docid }
+                  : item
+              )
+            );
+          } else if (currentStatus === "FAILED") {
+            es.close();
+            eventSources.current.delete(id);
+            abortControllers.current.delete(id);
+            const errMsg = payload.error || "Document ingestion failed.";
+            setUploads((prev) =>
+              prev.map((item) =>
+                item.id === id
+                  ? { ...item, status: "error", errorMessage: errMsg }
+                  : item
+              )
+            );
+            toast.error(`Error processing "${file.name}": ${errMsg}`);
+          }
+        } catch (err: any) {
+          console.error("Error handling SSE message:", err);
+        }
+      };
+
+      es.onerror = (err) => {
+        console.warn("SSE stream closed or encountered error:", err);
+      };
     } catch (error) {
       abortControllers.current.delete(id);
+      const es = eventSources.current.get(id);
+      if (es) {
+        es.close();
+        eventSources.current.delete(id);
+      }
 
       if (axios.isCancel(error)) {
         setUploads((prev) =>
@@ -354,6 +407,12 @@ export default function ChatWindow({
     if (controller) {
       controller.abort();
       abortControllers.current.delete(id);
+    }
+
+    const es = eventSources.current.get(id);
+    if (es) {
+      es.close();
+      eventSources.current.delete(id);
     }
 
     // Revoke object URL
@@ -523,6 +582,13 @@ export default function ChatWindow({
                               </svg>
                             </div>
                           )}
+
+                          {/* Center Spinning Indicator while processing */}
+                          {item.status === "processing" && (
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
+                              <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                            </div>
+                          )}
                         </div>
 
                         {/* Middle: Name and status */}
@@ -536,6 +602,8 @@ export default function ChatWindow({
                           <p className="text-[10px] text-gray-400 capitalize truncate">
                             {item.status === "uploading"
                               ? `${item.progress}%`
+                              : item.status === "processing"
+                              ? "Analyzing..."
                               : item.status === "error"
                               ? item.errorMessage || "Error"
                               : item.status === "cancelled"

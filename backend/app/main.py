@@ -25,14 +25,16 @@ from supabase import Client, create_client
 
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import redis.asyncio as aioredis
 from app.config import settings
+from Experiment.celery.rag.runner import dispatch_document_ingestion_chord
 from app.Ingestion.processor import complete_Ingestion
 from app.Ingestion.vectorstore.pinecone_service import (
     delete_conversation_documents,
     delete_conversation_documents_by_user_id,
 )
 
-ingestion_pool = ThreadPoolExecutor(max_workers=5, thread_name_prefix="rag_worker")
+# ingestion_pool = ThreadPoolExecutor(max_workers=5, thread_name_prefix="rag_worker")
 from app.agents.Main_agent.graph import create_graph
 from DB.database import db
 from utils.utils import (
@@ -358,8 +360,8 @@ async def rag_process_delete_file_pipeline(
     conversation_id: str = Query(..., description="Conversation ID"),
 ) -> JSONResponse:
     """
-    Validates HMAC signature, checks document URL, ingests chunks into Pinecone,
-    and removes the temporary document from ImageKit.
+    Validates HMAC signature, checks document URL, dispatches distributed
+    Celery chord for parallel slice processing, and returns HTTP 202 Accepted.
     """
     # 1. Authorize ImageKit signature
     verify_imagekit_signature(token, expire, signature)
@@ -371,35 +373,119 @@ async def rag_process_delete_file_pipeline(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Provided document URL is invalid, inaccessible, or unsupported.",
         )
-    # loop = asyncio.get_running_loop()
-    # 3. Ingest document chunks into Pinecone vector store
+
+    # 3. Dispatch distributed Celery chord
     try:
-        ingestion_result = await complete_Ingestion(path, 10, user_id, conversation_id)
-        if not ingestion_result or len(ingestion_result) == 0:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Problem during document Ingestion into vector store.",
-            )
-    except HTTPException:
-        raise
+        #! loop.run_in_executor() runs your function outside the main thread on a separate worker thread (or process) from a thread pool.
+        # loop = asyncio.get_running_loop()
+        job_id=dispatch_document_ingestion_chord(path,conversation_id,user_id,conversation_id,file_id)
+        # job_id = await loop.run_in_executor(
+        #     ingestion_pool,
+        #     dispatch_document_ingestion_chord,
+        #     path,
+        #     conversation_id,  # doc_id is the conversation_id / unique doc id
+        #     user_id,
+        #     conversation_id,
+        #     file_id,
+        # )
+
+        return JSONResponse(
+            status_code=status.HTTP_202_ACCEPTED,
+            content={
+                "success": True,
+                "status": "ACCEPTED",
+                "message": "Document ingestion successfully dispatched to worker fleet.",
+                "doc_id": conversation_id,
+                "job_id": job_id,
+                "conversation_id": conversation_id,
+                "file_id": file_id,
+            },
+        )
     except Exception as exc:
-        logger.error(f"Error during document ingestion: {exc}", exc_info=True)
+        logger.error(f"Error during document ingestion dispatch: {exc}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while processing document ingestion: {str(exc)}",
+            detail=f"An error occurred while initiating document ingestion: {str(exc)}",
         )
 
-    # 4. Clean up temporary uploaded file from ImageKit
-    await delete_imagekit_file(file_id)
 
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={
-            "success": True,
-            "message": f"File '{file_id}' successfully ingested and removed from temporary storage.",
-            "file_id": file_id,
-            "conversation_id": conversation_id,
-            "chunks_count": len(ingestion_result),
+# ---------------------------------------------------------------------------
+# Route: Document Ingestion Real-Time SSE Stream (Pub/Sub)
+# ---------------------------------------------------------------------------
+@app.get("/api/documents/stream/{doc_id}")
+async def stream_document_status(doc_id: str):
+    """
+    Subscribes to Redis Pub/Sub for document ingestion updates.
+    Implements the Rehydration Guard to prevent missed-event race conditions.
+    Yields Server-Sent Events (SSE) to the browser.
+    """
+    async def event_generator():
+        async_redis = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        pubsub = async_redis.pubsub()
+        channel = f"doc_status:{doc_id}"
+
+        try:
+            # 1. REHYDRATION GUARD:
+            # Check if processing already completed before subscriber connected
+            cached_status = await async_redis.get(f"doc_status_state:{doc_id}")
+            if cached_status:
+                try:
+                    payload = json.loads(cached_status)
+                    if payload.get("status") in ("READY", "SUCCESS", "FAILED"):
+                        logger.info(f"[{doc_id}] Rehydration guard hit: doc already {payload.get('status')}")
+                        yield f"data: {json.dumps(payload)}\n\n"
+                        return
+                except Exception:
+                    pass
+
+            # 2. Subscribe to Redis channel
+            await pubsub.subscribe(channel)
+            logger.info(f"[{doc_id}] Subscribed to SSE channel: {channel}")
+
+            start_time = time.time()
+            max_stream_duration = 300  # 5 minutes safety timeout
+
+            while True:
+                if time.time() - start_time > max_stream_duration:
+                    logger.warning(f"[{doc_id}] Stream timed out after {max_stream_duration}s")
+                    yield f"data: {json.dumps({'status': 'FAILED', 'doc_id': doc_id, 'error': 'Stream timed out'})}\n\n"
+                    break
+
+                message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+                if message and message.get("type") == "message":
+                    raw_data = message.get("data")
+                    yield f"data: {raw_data}\n\n"
+
+                    try:
+                        payload = json.loads(raw_data)
+                        if payload.get("status") in ("READY", "SUCCESS", "FAILED"):
+                            logger.info(f"[{doc_id}] Terminal status reached: {payload.get('status')}. Closing stream.")
+                            break
+                    except Exception:
+                        pass
+
+                await asyncio.sleep(0.1)
+
+        except asyncio.CancelledError:
+            logger.info(f"[{doc_id}] Client disconnected from stream: {channel}")
+        except Exception as exc:
+            logger.error(f"[{doc_id}] SSE stream error: {exc}", exc_info=True)
+            yield f"data: {json.dumps({'status': 'FAILED', 'error': str(exc)})}\n\n"
+        finally:
+            try:
+                await pubsub.unsubscribe(channel)
+                await pubsub.close()
+                await async_redis.aclose()
+            except Exception as cleanup_exc:
+                logger.warning(f"[{doc_id}] Error cleaning up Redis SSE connection: {cleanup_exc}")
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
         },
     )
 

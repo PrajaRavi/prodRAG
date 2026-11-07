@@ -1,26 +1,5 @@
 # Distributed RAG Ingestion Architecture with Celery & Pinecone
 
-```text
-
-Frontend (UI)               FastAPI Backend             Redis (Broker / PubSub)         Celery Worker Fleet
-     │                             │                              │                             │
-     │── 1. POST /documents/upload►│                              │                             │
-     │      (file_url, doc_id)     │── 2. chord(...) ────────────►│                             │
-     │                             │                              │── 3. Pull slices ──────────►│
-     │◄──4. HTTP 202 Accepted──────│                              │   (Run extraction, embed,   │
-     │      {job_id, doc_id}       │                              │    upsert to Pinecone)      │
-     │                             │                              │                             │
-     │── 5. Open WS / SSE ────────►│                              │                             │
-     │      /ws/notifications/{id} │◄── 6. Subscribe to channel ──│                             │
-     │                             │      "doc_events:{doc_id}"   │                             │
-     │                             │                              │                             │
-     │      [UI shows spinner]     │                              │◄── 7. chord callback fires ─│
-     │                             │                              │       (status: "READY")     │
-     │                             │◄── 8. PubSub Event Pushed ───│                             │
-     │◄── 9. Push "DOCUMENT_READY"─│                              │                             │
-     │                             │                              │                             │
-[UI unlocks chat interface]
-```
 ## 1. Executive Summary
 
 Transitioning from in-process concurrency (`asyncio.gather` / OS threading in FastAPI) to a distributed task queue (Celery + Redis) enables resilient, horizontally scalable ingestion for large documents (800–1000+ pages).

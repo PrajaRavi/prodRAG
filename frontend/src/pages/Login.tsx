@@ -7,7 +7,6 @@ import Button from "../components/ui/button"
 import { supabase } from "../utils/supabase";
 import { localUsre } from "../utils/const";
 import { useUser } from "../context/Global";
-import { ChatGPTPromptBox } from "../components/MultipleFileUpload";
 
 export default function Login() {
   const navigate = useNavigate();

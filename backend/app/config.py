@@ -78,6 +78,7 @@ class Settings:
     LANGSMITH_ENDPOINT = os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
     LOGFIRE_API=os.getenv("LOGFIRE_API_KEY")
     NVIDIA_API_KEY=os.getenv("NVIDIA_API_KEY")
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 # Apply LangChain environment variables for automatic tracing
 os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGSMITH_TRACING", "true")
