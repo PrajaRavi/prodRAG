@@ -119,7 +119,7 @@ except Exception as exc:
 
 # Limits concurrent document-ingestion operations in this process.
 # This is separate from Pinecone's pool_threads setting.
-concurrency_semaphore = asyncio.Semaphore(3)
+concurrency_semaphore = asyncio.Semaphore(10)
 
 
 # ============================================================
@@ -213,6 +213,13 @@ logger = logging.getLogger(__name__)
 # 50 to 100 is optimal for staying well within 2MB payload and 30s timeout limits
 BATCH_SIZE = 100
 
+"""
+concurrency_semaphor=10
+socket 1-> doc1->2 page->200 chunks==>2 batch=>1 semaphore
+socket 2-> doc2->800 page->1200 chunks=>10 batch=>1 semaphore
+
+remaining 18 sockets are idle and still 8 new documents can be processed 
+"""
 async def update_vector_store(
     chunks: Sequence[Document],
 ) -> List[str]:
@@ -223,21 +230,23 @@ async def update_vector_store(
         _validate_chunks(chunks)
         store = get_vector_store()
         
-        chunk_list = list(chunks)
+        chunk_list = list(chunks) # 1200 chunks
         total_chunks = len(chunk_list)
         all_inserted_ids: List[str] = []
 
         # Split into smaller slices of 50-100 chunks
         batches = [
-            chunk_list[i : i + BATCH_SIZE]
+            chunk_list[i : i + BATCH_SIZE] # 0-100 chunks
             for i in range(0, total_chunks, BATCH_SIZE)
         ]
 
         logger.info(
             f"Ingesting {total_chunks} chunks across {len(batches)} batches (Batch size: {BATCH_SIZE})..."
         )
+        
 
         async with concurrency_semaphore:
+            # This is the shared[critical section]
             for batch_idx, batch in enumerate(batches, start=1):
                 # Each mini-batch finishes in ~1-3s, completely avoiding timeout thresholds
                 batch_ids = await store.aadd_documents(documents=batch)
@@ -258,6 +267,59 @@ async def update_vector_store(
         logger.error(f"Failed to upsert documents to Pinecone: {exc}", exc_info=True)
         raise VectorStoreUpsertError("Failed to add documents to Pinecone.") from exc
 
+
+# 50-100 chunks keeps individual HTTP request payloads well below Pinecone's
+# 2MB limit and completes well within the default socket timeout.
+BATCH_SIZE = 100
+
+
+def update_vector_store_celery(
+    chunks: Sequence[Document],
+) -> List[str]:
+    """
+    Synchronously upserts LangChain Documents into Pinecone in bounded batches.
+    Designed for execution inside a standard prefork Celery worker process.
+    """
+    try:
+        _validate_chunks(chunks)
+        store = get_vector_store()
+
+        chunk_list = list(chunks)
+        total_chunks = len(chunk_list)
+        all_inserted_ids: List[str] = []
+
+        # Partition chunks into batches of BATCH_SIZE (100)
+        batches = [
+            chunk_list[i : i + BATCH_SIZE]
+            for i in range(0, total_chunks, BATCH_SIZE)
+        ]
+        total_batches = len(batches)
+
+        logger.info(
+            f"Ingesting {total_chunks} chunks across {total_batches} batches "
+            f"synchronously (Batch size: {BATCH_SIZE})..."
+        )
+
+        # Sequential batch processing inside the worker process
+        for batch_idx, batch in enumerate(batches, start=1):
+            # Synchronous Pinecone add_documents call
+            batch_ids = store.add_documents(documents=batch)
+
+            if not batch_ids:
+                raise VectorStoreUpsertError(
+                    f"Pinecone returned no IDs for batch {batch_idx}/{total_batches}."
+                )
+
+            all_inserted_ids.extend(batch_ids)
+            logger.info(f"Successfully upserted batch {batch_idx}/{total_batches}")
+
+        return all_inserted_ids
+
+    except VectorStoreError:
+        raise
+    except Exception as exc:
+        logger.error(f"Failed to upsert documents to Pinecone: {exc}", exc_info=True)
+        raise VectorStoreUpsertError("Failed to add documents to Pinecone.") from exc
 # ============================================================
 # Similarity Search
 # ============================================================
