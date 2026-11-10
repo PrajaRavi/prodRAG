@@ -198,8 +198,12 @@ def get_task_status(task_id: str):
    ```bash
    celery -A tasks worker --loglevel=info --concurrency=4
    celery -A tasks worker --loglevel=info --pool=threads -c 5
-   after -A celery_app_path->this is the path of the file where celery app is initilized not the task files 
+   ->after -A celery_app_path->this is the path of the file where celery app is initilized not the task files 
    so the flow will be like using this path celery_app is initilized and since we already mantion the path of task file so it will automatically connect with task file
+
+
+    ->used to start the dashboard
+   celery -A Experiment.celery.rag.celery_app:app flower --port=5555
    ```
 3. **Start FastAPI:**
    ```bash

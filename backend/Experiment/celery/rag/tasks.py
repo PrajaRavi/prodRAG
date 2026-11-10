@@ -4,7 +4,7 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 import httpx
-import fitz  # PyMuPDF
+import pymupdf  # PyMuPDF
 import redis
 from celery import shared_task
 from langchain_core.documents import Document
@@ -12,12 +12,11 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.config import settings
 from app.Ingestion.vectorstore.pinecone_service import update_vector_store_celery
-
+from Experiment.celery.rag.redis_sync import get_sync_redis
 logger = logging.getLogger(__name__)
 
 # Redis client initialized from application configuration
-redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
-
+redis_client = get_sync_redis()
 
 def process_pdf_slice_sync(
     file_url: str,
@@ -41,9 +40,9 @@ def process_pdf_slice_sync(
         pdf_bytes = response.content
 
     raw_documents: List[Document] = []
-    slice_start_idx = max(0, start_page - 1)  # fitz uses 0-based page index
+    slice_start_idx = max(0, start_page - 1)  # pymupdf uses 0-based page index
 
-    with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+    with pymupdf.open(stream=pdf_bytes, filetype="pdf") as doc:
         total_doc_pages = len(doc)
         slice_end_idx = min(end_page, total_doc_pages)
 
@@ -245,7 +244,7 @@ def document_ready_callback(
         state_payload = {
             "status": "READY",
             "doc_id": doc_id,
-            "total_chunks": total_chunks,
+            # "total_chunks": total_chunks,
             "conversation_id": conversation_id,
             "user_id": user_id,
         }

@@ -1,3 +1,9 @@
+```text
+starting backend server->uvicorn main:app --reload
+start the celery app worker 
+celery -A Experiment.celery.rag.celery_app worker --loglevel=info --pool=threads -c 5
+
+```
 > citations future updates->regenrate,simplify,shorter,improve
 
 > document intelligance

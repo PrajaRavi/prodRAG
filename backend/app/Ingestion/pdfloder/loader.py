@@ -1,5 +1,5 @@
 import os
-import fitz  # PyMuPDF: C-based, 10x-30x faster than pypdf
+import pymupdf  # PyMuPDF: C-based, 10x-30x faster than pypdf
 import httpx
 import logging
 from typing import List, Optional, Union
@@ -85,7 +85,7 @@ def safe_server_pdf_loader(
     clean_null_bytes: bool = True
 ) -> List[Document]:
     """
-    Scalable, high-performance PDF loader using PyMuPDF (fitz).
+    Scalable, high-performance PDF loader using PyMuPDF.
     
     Accepts:
         - Local file paths (e.g., '/data/sample.pdf' or 'C:\\docs\\notes.pdf')
@@ -120,12 +120,12 @@ def safe_server_pdf_loader(
         return []
 
     # 3. Parse via PyMuPDF in memory
-    doc: Optional[fitz.Document] = None
+    doc: Optional[pymupdf.Document] = None
     valid_docs: List[Document] = []
 
     try:
         # Load directly from memory buffer
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
 
         # Handle Encrypted PDFs
         if doc.is_encrypted:
@@ -171,7 +171,7 @@ def safe_server_pdf_loader(
 
         return valid_docs
 
-    except fitz.FileDataError as exc:
+    except pymupdf.FileDataError as exc:
         logger.error(f"Corrupted or invalid PDF structure for {file_source}: {exc}")
     except Exception as exc:
         logger.error(f"Unexpected parsing error for {file_source}: {exc}", exc_info=True)

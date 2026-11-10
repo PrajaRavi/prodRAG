@@ -281,6 +281,7 @@ export default function ChatWindow({
         try {
           const payload = JSON.parse(sseEvent.data);
           const currentStatus = payload.status;
+          console.log(currentStatus)
 
           if (currentStatus === "READY" || currentStatus === "SUCCESS") {
             es.close();

@@ -3,6 +3,7 @@ Production RAG Backend Service
 ==============================
 FastAPI service orchestrating document ingestion, ImageKit asset processing,
 Pinecone vector indexing, LangGraph multi-agent RAG workflow, and SSE streaming.
+
 """
 
 import hmac
@@ -194,11 +195,24 @@ async def delete_imagekit_file(file_id: str) -> bool:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🚀 Starting Production RAG application...")
-
+    
     # Initialize LangGraph Chatbot
     try:
         app.state.chatbot = create_graph()
         logger.info("🤖 LangGraph Chatbot graph compiled successfully.")
+        global redis_pool
+        # Create one shared pool for the entire FastAPI process
+        redis_pool = aioredis.ConnectionPool.from_url(
+        settings.REDIS_URL,
+        decode_responses=True,
+        max_connections=50,
+        socket_connect_timeout=15.0,  # Increase timeout from default
+        socket_timeout=15.0,
+        health_check_interval=30
+    )
+        yield
+        # Clean up on shutdown
+        await redis_pool.disconnect()
     except Exception as exc:
         logger.error(f"Failed to initialize chatbot graph: {exc}", exc_info=True)
         raise exc
@@ -420,7 +434,8 @@ async def stream_document_status(doc_id: str):
     Yields Server-Sent Events (SSE) to the browser.
     """
     async def event_generator():
-        async_redis = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        
+        async_redis = aioredis.Redis(connection_pool=redis_pool)
         pubsub = async_redis.pubsub()
         channel = f"doc_status:{doc_id}"
 
@@ -428,6 +443,11 @@ async def stream_document_status(doc_id: str):
             # 1. REHYDRATION GUARD:
             # Check if processing already completed before subscriber connected
             cached_status = await async_redis.get(f"doc_status_state:{doc_id}")
+            print("="*10)
+            print("cached status")
+            print(cached_status)
+            print("="*10)
+            
             if cached_status:
                 try:
                     payload = json.loads(cached_status)
@@ -452,6 +472,9 @@ async def stream_document_status(doc_id: str):
                     break
 
                 message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+                print("="*10)
+                print("message",message)
+                
                 if message and message.get("type") == "message":
                     raw_data = message.get("data")
                     yield f"data: {raw_data}\n\n"

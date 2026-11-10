@@ -1,6 +1,6 @@
 import logging
 from celery import Celery
-import fitz  # PyMuPDF
+import pymupdf  # PyMuPDF
 import httpx
 from app.Ingestion.vectorstore.pinecone_service import update_vector_store_celery
 from langchain_core.documents import Document
@@ -30,7 +30,7 @@ def process_pdf_slice(self, file_url: str, start_page: int, end_page: int, doc_i
 
         # 2. Extract slice text using PyMuPDF
         extracted_chunks = []
-        with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+        with pymupdf.open(stream=pdf_bytes, filetype="pdf") as doc:
             for page_num in range(start_page - 1, min(end_page, doc.page_count)):
                 page_text = doc[page_num].get_text()
                 if page_text.strip():

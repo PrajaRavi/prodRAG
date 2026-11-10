@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from typing import List, Optional, Tuple
-import fitz  # PyMuPDF
+import pymupdf  # PyMuPDF
 import httpx
 import redis
 from celery import chord
@@ -15,12 +15,12 @@ from Experiment.celery.rag.tasks import (
     process_pdf_slice_task,
     process_text_file_task,
 )
-
+from Experiment.celery.rag.redis_sync import get_sync_redis
 logger = logging.getLogger(__name__)
 
 PAGES_PER_SLICE = 100
 
-redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+redis_client = get_sync_redis()
 
 
 def get_pdf_page_count(file_url: str) -> int:
@@ -32,7 +32,7 @@ def get_pdf_page_count(file_url: str) -> int:
     # 1. Handle local file paths
     if os.path.exists(file_url) or file_url.startswith("file://"):
         local_path = file_url.replace("file://", "")
-        with fitz.open(local_path) as doc:
+        with pymupdf.open(local_path) as doc:
             return len(doc)
 
     # 2. Handle remote URLs (ImageKit, S3, Cloudinary)
@@ -40,7 +40,7 @@ def get_pdf_page_count(file_url: str) -> int:
         with httpx.Client(timeout=20.0) as client:
             response = client.get(file_url)
             response.raise_for_status()
-            with fitz.open(stream=response.content, filetype="pdf") as doc:
+            with pymupdf.open(stream=response.content, filetype="pdf") as doc:
                 return len(doc)
 
     raise ValueError(f"Invalid or unreachable file path/URL: {file_url}")

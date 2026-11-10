@@ -1,6 +1,6 @@
 
+> /api/RAG_process_delete_file_pipeline end point complete working
 ```text
-
 Frontend (UI)               FastAPI Backend             Redis (Broker / PubSub)         Celery Worker Fleet
      │                             │                              │                             │
      │── 1. POST /documents/upload►│                              │                             │
