@@ -1,6 +1,6 @@
 # eval_rag_pipeline.py
 from dotenv import load_dotenv
-
+import time
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase
 from deepeval.metrics import (
@@ -14,7 +14,6 @@ from app.Isolation.pipeline_iso import RAGPipeline
 from evals.harness import load_goldens, summarize_by_metric, print_summary
 from langchain_classic.retrievers.document_compressors import LLMChainExtractor
 from langchain_core.documents import Document
-
 load_dotenv()
 
 GOLDEN_PATH = "goldens/faithfulness_dataset.json"   # reuse the queries
@@ -23,8 +22,6 @@ THRESHOLD = 0.7
 
 
 def compress_retrieved_answers(query: str, ans: list[str]) -> list[str]:
-    print(query)
-    print(ans)
     """
     Compresses a list of retrieved answer chunks using LLMChainExtractor.
     
@@ -51,6 +48,7 @@ def compress_retrieved_answers(query: str, ans: list[str]) -> list[str]:
     
     return compressed_ans
 def run(rag):
+
     # 1. LOAD queries (we only need the queries --- context comes from the pipeline now)
     goldens = load_goldens(GOLDEN_PATH)
 
@@ -60,12 +58,12 @@ def run(rag):
         result = rag.invoke(g["query"])          # retrieve -> rerank -> generate
         # print("--------------context---------------------")
         # print(result['context'])
-        ctx=compress_retrieved_answers(g["query"],result['context'])
+        # ctx=compress_retrieved_answers(g["query"],result['context'])
         test_cases.append(
             LLMTestCase(
                 input=g["query"],
                 actual_output=result["answer"],       # what the generator produced
-                retrieval_context=ctx,  # what the RETRIEVER returned
+                retrieval_context=result["context"],  # what the RETRIEVER returned
             )
         )
 
@@ -87,5 +85,7 @@ def run_local():
 
 
 if __name__ == "__main__":
+    ctime=time.time()
     print_summary("rag_pipeline", run_local())
+    print(" total time:-> ",time.time()-ctime)
     

@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import type { Conversation, FetchConversationOptions, PaginationConversationOptions, User } from "./types";
 import NotFound from "./pages/NotFound";
 
+let PAGE_SIZE=2
 
 function App() {
   let [IsLogin,setIsLogin]=useState<boolean>(false)
@@ -37,12 +38,12 @@ function App() {
         toast.warn("you are at end")
         return 
       }
-      await getConversationHistory({page:Number(ConversationHistoryPagination.page),pageSize:6,user_id:user.id})
+      await getConversationHistory({page:Number(ConversationHistoryPagination.page),pageSize:PAGE_SIZE,user_id:user.id})
     } catch (error) {
       console.log(error)
     }
   }
-  async function getConversationHistory({ page = 1, pageSize = 10 ,user_id}: FetchConversationOptions = {}) {
+  async function getConversationHistory({ page = 1, pageSize = PAGE_SIZE ,user_id}: FetchConversationOptions = {}) {
   // Calculate zero-based offsets for range query
   try {
     setConversationHistorySignal(true)
@@ -125,7 +126,7 @@ function App() {
     
 if(localStorage.getItem(localUsre) && user.id!=0){
   console.log("chala")
-  getConversationHistory({page:1,pageSize:6,user_id:user.id});
+  getConversationHistory({page:1,pageSize:PAGE_SIZE,user_id:user.id});
   
   
 }

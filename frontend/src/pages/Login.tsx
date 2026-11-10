@@ -64,6 +64,10 @@ else{
   };
 
   return (
+    // <div className="">
+
+    // <ChatGPTPromptBox/>
+    // </div>
     <main className="flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-5">
       {/* Background decoration */}
       <div className="pointer-events-none absolute inset-0">

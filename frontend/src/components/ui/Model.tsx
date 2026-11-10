@@ -11,7 +11,7 @@ import { DeepThinkingMode } from "../../utils/const";
 interface DocumentUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onFileSelect?: (file: File) => void;
+  onFileSelect?: (file: FileList) => void;
 
   // Deep thinking callbacks
   onDeepThinkingOff?: () => void;
@@ -36,11 +36,10 @@ export default function DocumentUploadModal({
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
+    const files = event.target.files;
+    if (!files) return;
 
-    if (!file) return;
-
-    onFileSelect?.(file);
+    onFileSelect?.(files);
 
     onClose();
 
@@ -306,6 +305,7 @@ export default function DocumentUploadModal({
               {/* File input */}
               <input
                 ref={inputRef}
+                multiple={true}
                 type="file"
                 accept=".pdf,.txt,application/pdf,text/plain"
                 onChange={handleFileChange}
