@@ -1,6 +1,6 @@
 import os
 from celery import Celery
-
+#! celery -A Experiment.celery.rag.celery_app worker --loglevel=info --pool=threads -c 5
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 # broker is used for queues (DB 0); backend stores return values (DB 1)
