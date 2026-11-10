@@ -12,11 +12,14 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.config import settings
 from app.Ingestion.vectorstore.pinecone_service import update_vector_store_celery
-from Experiment.celery.rag.redis_sync import get_sync_redis
+from Experiment.celery.rag.redis_sync import get_sync_redis, get_binary_redis
+
 logger = logging.getLogger(__name__)
 
-# Redis client initialized from application configuration
+# Redis clients initialized from connection pools
 redis_client = get_sync_redis()
+redis_binary_client = get_binary_redis()
+
 
 def process_pdf_slice_sync(
     file_url: str,
@@ -28,16 +31,26 @@ def process_pdf_slice_sync(
 ) -> int:
     """
     Synchronous worker pipeline:
-    1. Downloads PDF into memory via httpx.
+    1. Retrieves PDF bytes directly from in-memory Redis cache (sub-millisecond).
+       Falls back to network download only if the cache expired.
     2. Extracts text for pages [start_page, end_page] via PyMuPDF.
     3. Chunks text using RecursiveCharacterTextSplitter.
     4. Delegates upsert to `update_vector_store_celery`.
     """
-    logger.info(f"[{doc_id}] Downloading PDF slice from: {file_url}")
-    with httpx.Client(timeout=30.0) as http_client:
-        response = http_client.get(file_url)
-        response.raise_for_status()
-        pdf_bytes = response.content
+    # 1. Fetch raw PDF bytes from in-memory cache
+    pdf_bytes = redis_binary_client.get(f"doc_blob:{doc_id}")
+    if pdf_bytes:
+        logger.info(
+            f"[{doc_id}] Retrieved PDF bytes ({len(pdf_bytes)} bytes) from in-memory cache for pages {start_page}-{end_page}."
+        )
+    else:
+        logger.warning(
+            f"[{doc_id}] In-memory cache miss for doc_blob:{doc_id}. Falling back to network download from: {file_url}"
+        )
+        with httpx.Client(timeout=30.0) as http_client:
+            response = http_client.get(file_url)
+            response.raise_for_status()
+            pdf_bytes = response.content
 
     raw_documents: List[Document] = []
     slice_start_idx = max(0, start_page - 1)  # pymupdf uses 0-based page index
@@ -100,12 +113,17 @@ def process_text_file_sync(
     user_id: str = "",
     conversation_id: str = "",
 ) -> int:
-    """Synchronous pipeline for raw text files."""
-    logger.info(f"[{doc_id}] Downloading text file from: {file_url}")
-    with httpx.Client(timeout=30.0) as http_client:
-        response = http_client.get(file_url)
-        response.raise_for_status()
-        text_content = response.text
+    """Synchronous pipeline for raw text files with in-memory cache lookup."""
+    text_bytes = redis_binary_client.get(f"doc_blob:{doc_id}")
+    if text_bytes:
+        logger.info(f"[{doc_id}] Retrieved text bytes from in-memory cache.")
+        text_content = text_bytes.decode("utf-8", errors="replace")
+    else:
+        logger.warning(f"[{doc_id}] In-memory cache miss for doc_blob:{doc_id}. Downloading from: {file_url}")
+        with httpx.Client(timeout=30.0) as http_client:
+            response = http_client.get(file_url)
+            response.raise_for_status()
+            text_content = response.text
 
     if not text_content.strip():
         return 0
@@ -216,9 +234,10 @@ def document_ready_callback(
     """
     Executed ONLY after all process slice tasks finish.
     1. Sums total chunks across all slices.
-    2. Deletes temporary file from ImageKit.
-    3. Persists READY status in Redis for Rehydration Guard.
-    4. Publishes event on Redis channel doc_status:{doc_id}.
+    2. Evicts the cached document blob from Redis in-memory storage.
+    3. Deletes temporary file from ImageKit.
+    4. Persists READY status in Redis for Rehydration Guard.
+    5. Publishes event on Redis channel doc_status:{doc_id}.
     """
     try:
         total_chunks = sum(
@@ -226,7 +245,15 @@ def document_ready_callback(
         )
         logger.info(f"[{doc_id}] All slices processed. Total chunks upserted: {total_chunks}")
 
-        # 1. Clean up temporary uploaded file from ImageKit
+        # 1. Evict in-memory document blob immediately upon chord completion
+        try:
+            evicted = redis_binary_client.delete(f"doc_blob:{doc_id}")
+            if evicted:
+                logger.info(f"[{doc_id}] Successfully evicted doc_blob:{doc_id} from in-memory Redis cache.")
+        except Exception as evict_err:
+            logger.warning(f"[{doc_id}] Error clearing in-memory doc_blob: {evict_err}")
+
+        # 2. Clean up temporary uploaded file from ImageKit
         if file_id and settings.IMAGEKIT_PRIVATE_KEY:
             try:
                 with httpx.Client(timeout=15.0) as http_client:
@@ -240,17 +267,16 @@ def document_ready_callback(
             except Exception as ik_err:
                 logger.warning(f"[{doc_id}] Failed to delete ImageKit file {file_id}: {ik_err}")
 
-        # 2. Persist READY status in Redis for Rehydration Guard
+        # 3. Persist READY status in Redis for Rehydration Guard
         state_payload = {
             "status": "READY",
             "doc_id": doc_id,
-            # "total_chunks": total_chunks,
             "conversation_id": conversation_id,
             "user_id": user_id,
         }
         redis_client.set(f"doc_status_state:{doc_id}", json.dumps(state_payload), ex=3600)
 
-        # 3. Publish message to channel doc_status:{doc_id}
+        # 4. Publish message to channel doc_status:{doc_id}
         channel_name = f"doc_status:{doc_id}"
         event_payload = {
             "event": "DOCUMENT_INGESTION_COMPLETED",
@@ -265,6 +291,12 @@ def document_ready_callback(
 
     except Exception as exc:
         logger.error(f"[{doc_id}] Error in document_ready_callback: {exc}", exc_info=True)
+        # Ensure memory is cleaned up even on callback error
+        try:
+            redis_binary_client.delete(f"doc_blob:{doc_id}")
+        except Exception:
+            pass
+
         error_payload = {
             "status": "FAILED",
             "doc_id": doc_id,

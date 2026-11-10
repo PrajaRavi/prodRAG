@@ -31,9 +31,11 @@ app.conf.update(
     task_send_sent_event=True,
 
     # Worker Concurrency & Memory Safeguards
+    #! These two settings form the core of fair task distribution and crash resiliency in Celery. Together, they stop a single heavy user from monopolizing your worker fleet and prevent tasks from being lost if a worker dies.
+    #!<--------------- scaling_queue_for_multiple_user.md file ----------------->
     worker_prefetch_multiplier=1,
+    task_acks_late=True,
     worker_max_tasks_per_child=10,
 )
-    
 
 

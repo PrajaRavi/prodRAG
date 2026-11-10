@@ -384,6 +384,8 @@ export default function ChatWindow({
     if (!files || files.length === 0) return;
 
     const selectedFiles = Array.from(files);
+    if(selectedFiles.length>5) 
+      return toast.error("Max 5 documents are allowed!!!")
 
     const newUploads: FileUploadState[] = selectedFiles.map((file) => ({
       id: `${file.name}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,

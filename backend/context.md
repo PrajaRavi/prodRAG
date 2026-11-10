@@ -104,31 +104,38 @@ backend/
 
 ## 3. Core Architecture & Execution Pipelines
 
-### A. Distributed Ingestion Pipeline (Celery Chord + Redis Pub/Sub)
+### A. Distributed Ingestion Pipeline (Celery Chord + Redis Pub/Sub + In-Memory Caching)
 
 ```mermaid
 flowchart TD
     Client["Client / Frontend"] -->|"POST /api/RAG_process_delete_file_pipeline"| API["FastAPI Main Thread"]
     API -->|"1. Validate HMAC & URL"| Val["ImageKit Signature & MIME Check"]
-    API -->|"2. Inspect Page Count (PyMuPDF ~5ms)"| Slices["Calculate 100-Page Slices"]
-    API -->|"3. Set Redis State (PENDING)"| RedisState["Redis DB 3: doc_status_state:{doc_id}"]
-    API -->|"4. Dispatch Celery Chord"| Broker["Redis DB 0 (Celery Broker)"]
-    API -->|"5. Return 202 ACCEPTED"| Client
+    API -->|"2. Download ONCE into RAM"| Download["fetch_document_bytes (~1-2s)"]
+    Download -->|"3. Cache Raw Bytes in RAM (10m TTL)"| RedisRAM["Redis RAM: doc_blob:{doc_id}"]
+    Download -->|"4. Inspect Page Count from RAM (~2ms)"| Slices["Calculate 50-Page Slices"]
+    API -->|"5. Set Redis State (PENDING)"| RedisState["Redis DB 3: doc_status_state:{doc_id}"]
+    API -->|"6. Dispatch Celery Chord"| Broker["Redis DB 0 (Celery Broker)"]
+    API -->|"7. Return 202 ACCEPTED"| Client
 
     subgraph Celery Worker Fleet
-        Broker --> Worker1["Worker 1: Pages 1-100"]
-        Broker --> Worker2["Worker 2: Pages 101-200"]
+        Broker --> Worker1["Worker 1: Pages 1-50"]
+        Broker --> Worker2["Worker 2: Pages 51-100"]
         Broker --> WorkerN["Worker N: Pages N-End"]
         
+        Worker1 <-->|"Sub-ms Pull from RAM"| RedisRAM
+        Worker2 <-->|"Sub-ms Pull from RAM"| RedisRAM
+        WorkerN <-->|"Sub-ms Pull from RAM"| RedisRAM
+
         Worker1 -->|"PyMuPDF in-memory -> RecursiveSplit -> Nomic Embed"| Pinecone[("Pinecone Index: prodrag")]
         Worker2 -->|"PyMuPDF in-memory -> RecursiveSplit -> Nomic Embed"| Pinecone
         WorkerN -->|"PyMuPDF in-memory -> RecursiveSplit -> Nomic Embed"| Pinecone
     end
 
     Worker1 & Worker2 & WorkerN -->|"All Slices Complete"| ChordCallback["document_ready_callback Task"]
-    ChordCallback -->|"1. Delete Temp Asset"| ImageKit[("ImageKit API")]
-    ChordCallback -->|"2. Set Redis Status: READY"| RedisState
-    ChordCallback -->|"3. Publish Event"| RedisPubSub["Redis Channel: doc_status:{doc_id}"]
+    ChordCallback -->|"1. Evict Document from RAM"| RedisRAM
+    ChordCallback -->|"2. Delete Temp Remote Asset"| ImageKit[("ImageKit API")]
+    ChordCallback -->|"3. Set Redis Status: READY"| RedisState
+    ChordCallback -->|"4. Publish Event"| RedisPubSub["Redis Channel: doc_status:{doc_id}"]
 
     subgraph SSE Notification Loop
         Client -->|"GET /api/documents/stream/{doc_id}"| SSE["FastAPI SSE Endpoint"]
@@ -142,20 +149,26 @@ flowchart TD
 #### Detailed Ingestion Steps
 1. **Endpoint**: [`/api/RAG_process_delete_file_pipeline`](file:///D:/ProductionRAGFromScratch/backend/app/main.py#L365).
 2. **Signature Verification**: Validates ImageKit HMAC SHA-1 auth string (`token + expire`).
-3. **Metadata Inspection**: [`get_pdf_page_count()`](file:///D:/ProductionRAGFromScratch/backend/Experiment/celery/rag/runner.py#L26) checks PDF length in memory via [`pymupdf.open`](file:///D:/ProductionRAGFromScratch/backend/Experiment/celery/rag/runner.py#L35) in milliseconds without loading document content.
-4. **State Initialization**: Stores initial `PENDING` state in Redis key `doc_status_state:{doc_id}` (TTL: 3600s).
-5. **Chord Dispatch**: Slices the PDF into 100-page parallel signatures [`process_pdf_slice_task.s()`](file:///D:/ProductionRAGFromScratch/backend/Experiment/celery/rag/tasks.py#L143) chained with [`document_ready_callback.s()`](file:///D:/ProductionRAGFromScratch/backend/Experiment/celery/rag/tasks.py#L208).
-6. **Worker Slice Ingestion**:
-   - Downloads PDF bytes in memory via `httpx`.
-   - Extracts clean text using `pymupdf` (stripping null `\x00` bytes).
+3. **Single In-Memory Download & Cache**: [`fetch_document_bytes()`](file:///D:/ProductionRAGFromScratch/backend/Experiment/celery/rag/runner.py#L26) downloads the document **exactly once** via `httpx`. The raw binary is immediately stored in Redis in-memory storage under key `doc_blob:{doc_id}` with a 10-minute auto-expiry TTL (`ex=600`).
+4. **Metadata Inspection**: Page count is extracted directly from the in-memory bytes using `pymupdf.open(stream=doc_bytes)` in ~2ms without any disk writes or duplicate network calls.
+5. **State Initialization**: Stores initial `PENDING` state in Redis key `doc_status_state:{doc_id}` (TTL: 3600s).
+6. **Chord Dispatch**: Slices the PDF into 50-page parallel signatures [`process_pdf_slice_task.s()`](file:///D:/ProductionRAGFromScratch/backend/Experiment/celery/rag/tasks.py#L143) chained with [`document_ready_callback.s()`](file:///D:/ProductionRAGFromScratch/backend/Experiment/celery/rag/tasks.py#L208).
+7. **Zero-Network Worker Slice Ingestion**:
+   - Each worker fetches raw PDF bytes in sub-milliseconds from `doc_blob:{doc_id}` using a raw binary Redis connection pool ([`get_binary_redis()`](file:///D:/ProductionRAGFromScratch/backend/Experiment/celery/rag/redis_sync.py#L30)). Falls back to network download only on cache miss.
+   - Extracts clean text using `pymupdf` strictly for its allocated page slice `[start_page, end_page]`.
    - Splits text into 1,000-character chunks (150 overlap) with [`RecursiveCharacterTextSplitter`](file:///D:/ProductionRAGFromScratch/backend/Experiment/celery/rag/tasks.py#L65).
    - Tags each chunk with metadata: `user_id`, `conversation_id`, `page`, `source_url`.
    - Embeds and upserts into Pinecone synchronously via [`update_vector_store_celery()`](file:///D:/ProductionRAGFromScratch/backend/app/Ingestion/vectorstore/pinecone_service.py#L276) in batches of 100.
-7. **Chord Completion Callback**:
+8. **Chord Completion Callback & Dual-Layer Teardown**:
+   - Evicts `doc_blob:{doc_id}` from Redis RAM immediately upon completion (or error), freeing server memory.
    - Computes total stored chunks across slices.
    - Deletes temporary raw file from ImageKit via REST API.
    - Updates `doc_status_state:{doc_id}` with `status: "READY"`.
    - Emits a JSON completion message on Redis channel `doc_status:{doc_id}`.
+9. **Fair-Scheduling & Multi-Tenant Starvation Prevention**:
+   - `worker_prefetch_multiplier = 1`: Workers only reserve one task at a time, preventing greedy hoarding.
+   - `task_acks_late = True`: Tasks remain in Redis broker until execution succeeds, preventing unpicked tasks from blocking other users.
+   - Finer slice granularity (`PAGES_PER_SLICE = 50`): Slices complete in seconds, allowing multi-user tasks to interleave fairly.
 
 ---
 
@@ -301,3 +314,5 @@ Located in [`evals/`](file:///D:/ProductionRAGFromScratch/backend/evals/), the a
 >    Never load multi-gigabyte or remote files directly into disk buffers. Use stream inspection ([`safe_server_pdf_loader`](file:///D:/ProductionRAGFromScratch/backend/app/Ingestion/pdfloder/loader.py#L81)) with 10MB chunk guard checks to avoid worker Out-Of-Memory (OOM) faults.
 > 6. **PostgreSQL Null Byte Filter**:
 >    Always sanitize raw text by stripping `\x00` null characters (`raw_text.replace("\x00", "")`), as null bytes cause unhandled driver errors in PostgreSQL / pgvector / vector stores.
+> 7. **Binary vs. Text Redis Connection Pools**:
+>    When storing raw binary files (such as `doc_blob:{doc_id}`), never use a client configured with `decode_responses=True`, as decoding arbitrary PDF bytes as UTF-8 raises `UnicodeDecodeError`. Always use `get_binary_redis()` (`decode_responses=False`) for raw binary document blobs, and `get_sync_redis()` (`decode_responses=True`) for JSON/pub-sub payloads.
